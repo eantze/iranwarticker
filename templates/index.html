@@ -1,206 +1,193 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Oil &amp; Gas Reduction Ticker</title>
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-99CTV9F01T"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-99CTV9F01T');
-    </script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "base.html" %}
 
-        body {
-            background: #000000;
-            color: #ffffff;
-            font-family: 'Courier New', monospace;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+{% block title %}Global Oil &amp; Gas Reduction Ticker{% endblock %}
 
-        .container {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3rem;
-            padding: 0 1.5rem;
-        }
+{% block head %}
+<style>
+    body {
+        background: #000000;
+    }
 
-        .header {
-            color: #ffffff;
-            font-size: 1.2rem;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-        }
+    .ticker-container {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3rem;
+        padding: 0 1.5rem;
+        min-height: 100vh;
+        justify-content: center;
+    }
 
-        .counter-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    .ticker-header {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 1.2rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+    }
 
+    .counter-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .glow-number {
+        color: #ffffff;
+        text-shadow:
+            0 0 10px rgba(0, 255, 200, 0.8),
+            0 0 20px rgba(0, 255, 200, 0.6),
+            0 0 40px rgba(0, 255, 200, 0.4),
+            0 0 80px rgba(0, 255, 200, 0.2);
+        font-size: 4.5rem;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        letter-spacing: 0.05em;
+    }
+
+    .ticker-label {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 1rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .pre-epoch-note {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        font-style: italic;
+        display: none;
+    }
+
+    .assumptions-toggle {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s;
+    }
+
+    .assumptions-toggle:hover {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .assumptions-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease, opacity 0.4s ease;
+        opacity: 0;
+    }
+
+    .assumptions-content.open {
+        max-height: 300px;
+        opacity: 1;
+    }
+
+    .assumptions-content ul {
+        list-style: none;
+        padding: 0.8rem 2rem 0 2rem;
+        text-align: center;
+        max-width: 600px;
+    }
+
+    .assumptions-content li {
+        color: #ffffff;
+        font-size: 0.65rem;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.05em;
+        line-height: 1.8;
+    }
+
+    @media (max-width: 600px) {
         .glow-number {
-            color: #ffffff;
-            text-shadow:
-                0 0 10px rgba(0, 255, 200, 0.8),
-                0 0 20px rgba(0, 255, 200, 0.6),
-                0 0 40px rgba(0, 255, 200, 0.4),
-                0 0 80px rgba(0, 255, 200, 0.2);
-            font-size: 4.5rem;
-            font-weight: bold;
-            letter-spacing: 0.05em;
+            font-size: 2.5rem;
         }
 
-        .label {
-            color: #ffffff;
+        .ticker-header {
             font-size: 1rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
         }
 
-        .pre-epoch-note {
-            color: #ffffff;
-            font-size: 0.9rem;
-            font-style: italic;
-            display: none;
+        .ticker-label {
+            font-size: 0.85rem;
         }
+    }
+</style>
+{% endblock %}
 
-        .assumptions-toggle {
-            color: #ffffff;
-            font-size: 0.7rem;
-            letter-spacing: 0.1em;
-            cursor: pointer;
-            user-select: none;
-            transition: color 0.3s;
-        }
+{% block content %}
+<div class="ticker-container">
+    <div class="ticker-header">Since March 1, 2026</div>
 
-        .assumptions-toggle:hover {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .assumptions-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease, opacity 0.4s ease;
-            opacity: 0;
-        }
-
-        .assumptions-content.open {
-            max-height: 300px;
-            opacity: 1;
-        }
-
-        .assumptions-content ul {
-            list-style: none;
-            padding: 0.8rem 2rem 0 2rem;
-            text-align: center;
-            max-width: 600px;
-        }
-
-        .assumptions-content li {
-            color: #ffffff;
-            font-size: 0.65rem;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 0.05em;
-            line-height: 1.8;
-        }
-
-        @media (max-width: 600px) {
-            .glow-number {
-                font-size: 2.5rem;
-            }
-
-            .header {
-                font-size: 1rem;
-            }
-
-            .label {
-                font-size: 0.85rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">Since March 1, 2026</div>
-
-        <div class="counter-group">
-            <div class="glow-number" id="percent">0.000000%</div>
-            <div class="label">Global Oil &amp; Gas Production Reduced</div>
-        </div>
-
-        <div class="counter-group">
-            <div class="glow-number" id="co2">0</div>
-            <div class="label">Tons of CO2 Not Produced</div>
-        </div>
-
-        <div class="pre-epoch-note" id="pre-epoch-note">
-            Countdown begins March 1, 2026
-        </div>
-
-        <div class="assumptions-section">
-            <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
-                &#9662; our assumptions
-            </div>
-            <div class="assumptions-content" id="assumptions">
-                <ul>
-                    <li>March 1st the Strait of Hormuz was closed due to the war with Iran.</li>
-                    <li>20% of the world's oil production moves through the Strait of Hormuz</li>
-                    <li>Each day the strait remains closed the world is producing 20% less oil</li>
-                    <li>20% of the world's oil production for one year is roughly 7.5 billion barrels</li>
-                    <li>430 kg of CO2 is produced per barrel of oil</li>
-                </ul>
-            </div>
-        </div>
+    <div class="counter-group">
+        <div class="glow-number" id="percent">0.000000%</div>
+        <div class="ticker-label">Global Oil &amp; Gas Production Reduced</div>
     </div>
 
-    <script>
-        const EPOCH = new Date('2026-03-01T00:00:00Z').getTime();
-        const MS_PER_DAY = 86400000;
-        const DAYS_PER_PERCENT = 18.25;
-        const CO2_PER_PERCENT = 166000000;
+    <div class="counter-group">
+        <div class="glow-number" id="co2">0</div>
+        <div class="ticker-label">Tons of CO2 Not Produced</div>
+    </div>
 
-        const percentEl = document.getElementById('percent');
-        const co2El = document.getElementById('co2');
-        const noteEl = document.getElementById('pre-epoch-note');
+    <div class="pre-epoch-note" id="pre-epoch-note">
+        Countdown begins March 1, 2026
+    </div>
 
-        function update() {
-            const now = Date.now();
-            const elapsed = now - EPOCH;
+    <div class="assumptions-section">
+        <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
+            &#9662; our assumptions
+        </div>
+        <div class="assumptions-content" id="assumptions">
+            <ul>
+                <li>March 1st the Strait of Hormuz was closed due to the war with Iran.</li>
+                <li>20% of the world's oil production moves through the Strait of Hormuz</li>
+                <li>Each day the strait remains closed the world is producing 20% less oil</li>
+                <li>20% of the world's oil production for one year is roughly 7.5 billion barrels</li>
+                <li>430 kg of CO2 is produced per barrel of oil</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-            if (elapsed < 0) {
-                percentEl.textContent = '0.000000%';
-                co2El.textContent = '0';
-                noteEl.style.display = 'block';
-                return;
-            }
+{% block scripts %}
+<script>
+    const EPOCH = new Date('2026-03-01T00:00:00Z').getTime();
+    const MS_PER_DAY = 86400000;
+    const DAYS_PER_PERCENT = 18.25;
+    const CO2_PER_PERCENT = 166000000;
 
-            noteEl.style.display = 'none';
+    const percentEl = document.getElementById('percent');
+    const co2El = document.getElementById('co2');
+    const noteEl = document.getElementById('pre-epoch-note');
 
-            const daysElapsed = elapsed / MS_PER_DAY;
-            const percentReduced = daysElapsed / DAYS_PER_PERCENT;
-            const co2Tons = Math.floor(percentReduced * CO2_PER_PERCENT);
+    function update() {
+        const now = Date.now();
+        const elapsed = now - EPOCH;
 
-            percentEl.textContent = percentReduced.toFixed(6) + '%';
-            co2El.textContent = co2Tons.toLocaleString('en-US');
+        if (elapsed < 0) {
+            percentEl.textContent = '0.000000%';
+            co2El.textContent = '0';
+            noteEl.style.display = 'block';
+            return;
         }
 
-        update();
-        setInterval(update, 80);
-    </script>
-</body>
-</html>
+        noteEl.style.display = 'none';
+
+        const daysElapsed = elapsed / MS_PER_DAY;
+        const percentReduced = daysElapsed / DAYS_PER_PERCENT;
+        const co2Tons = Math.floor(percentReduced * CO2_PER_PERCENT);
+
+        percentEl.textContent = percentReduced.toFixed(6) + '%';
+        co2El.textContent = co2Tons.toLocaleString('en-US');
+    }
+
+    update();
+    setInterval(update, 80);
+</script>
+{% endblock %}
