@@ -169,6 +169,10 @@ def upload_to_gcs():
         return False
 
     try:
+        # Checkpoint the WAL so all data is in the main DB file
+        conn = _get_conn()
+        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+
         blob = bucket.blob("market_data.db")
         blob.upload_from_filename(DB_PATH)
         logger.info("Database uploaded to GCS")

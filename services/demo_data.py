@@ -123,7 +123,7 @@ def get_demo_prices():
         "crude": {
             "wti": {
                 "label": "WTI crude oil futures",
-                "exchange": "NYMEX: CL",
+                "exchange": "CLW00: NYMEX",
                 "price": round(wti_price, 2),
                 "updated": now,
                 "history": _generate_history(68, wti_price, 0.006, min(hours_since, 480)),

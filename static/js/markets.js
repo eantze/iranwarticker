@@ -78,10 +78,6 @@ function computeChange(history, currentPrice) {
 }
 
 function renderCard(key, instrument, container) {
-    const isUp = (instrument.change != null ? instrument.change >= 0 : true);
-    const color = isUp ? "#00e5a0" : "#ff4d6a";
-    const arrow = isUp ? "\u25B2" : "\u25BC";
-
     // Day change for indices, computed change for commodities
     let changeVal, changePctStr;
     if (key === "sp500" || key === "dji") {
@@ -94,6 +90,11 @@ function renderCard(key, instrument, container) {
             changePctStr = (computed.changePct >= 0 ? "+" : "") + computed.changePct.toFixed(2) + "%";
         }
     }
+
+    // Determine arrow/color based on the actual displayed change value
+    const isUp = (changeVal != null ? changeVal >= 0 : true);
+    const color = isUp ? "#00e5a0" : "#ff4d6a";
+    const arrow = isUp ? "\u25B2" : "\u25BC";
 
     // Period change (from start of history)
     let periodStr = "";

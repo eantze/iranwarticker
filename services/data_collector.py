@@ -6,7 +6,7 @@ import time
 
 import requests
 
-from config import TWELVE_DATA_KEY
+from config import TWELVE_DATA_KEY, EIA_API_KEY
 from services.database import (
     get_meta,
     save_history,
@@ -17,24 +17,47 @@ from services.database import (
 
 logger = logging.getLogger(__name__)
 
-# Same instruments as market_data.py
-INSTRUMENTS = {
-    "indices": {
-        "sp500": {"symbol": "SPY", "label": "S&P 500", "exchange": "INDEX: SPX"},
-        "dji": {"symbol": "DIA", "label": "Dow Jones Industrial", "exchange": "INDEX: DJI"},
+# --- Instrument definitions ---
+
+# Twelve Data: indices only (2 symbols = 2 credits per batch quote)
+INDEX_INSTRUMENTS = {
+    "sp500": {"symbol": "SPY", "label": "S&P 500", "exchange": "INDEX: SPX"},
+    "dji": {"symbol": "DIA", "label": "Dow Jones Industrial", "exchange": "INDEX: DJI"},
+}
+INDEX_SYMBOLS = [info["symbol"] for info in INDEX_INSTRUMENTS.values()]
+INDEX_SYMBOLS_STR = ",".join(INDEX_SYMBOLS)
+
+# EIA: energy commodities (4 series, separate API — no rate limit conflict)
+EIA_INSTRUMENTS = {
+    "wti": {
+        "series": "RWTC",
+        "endpoint": "petroleum/pri/spt",
+        "label": "WTI crude oil",
+        "exchange": "CLW00: NYMEX",
+        "unit": "$/barrel",
     },
-    "crude": {
-        "wti": {"symbol": "USO", "label": "WTI crude oil futures", "exchange": "NYMEX: CL"},
-        "brent": {"symbol": "BNO", "label": "Brent crude oil futures", "exchange": "NYMEX: BZW00"},
+    "brent": {
+        "series": "RBRTE",
+        "endpoint": "petroleum/pri/spt",
+        "label": "Brent crude oil",
+        "exchange": "NYMEX: BZW00",
+        "unit": "$/barrel",
     },
-    "fuel": {
-        "rbob": {"symbol": "UGA", "label": "RBOB gasoline futures", "exchange": "NYMEX: RB"},
-        "ng": {"symbol": "UNG", "label": "Henry Hub natural gas", "exchange": "NYMEX: NG"},
+    "rbob": {
+        "series": "EER_EPMRU_PF4_RGC_DPG",
+        "endpoint": "petroleum/pri/spt",
+        "label": "RBOB gasoline",
+        "exchange": "NYMEX: RB",
+        "unit": "$/gallon",
+    },
+    "ng": {
+        "series": "RNGWHHD",
+        "endpoint": "natural-gas/pri/fut",
+        "label": "Henry Hub natural gas",
+        "exchange": "NYMEX: NG",
+        "unit": "$/MMBtu",
     },
 }
-
-ALL_SYMBOLS = [info["symbol"] for insts in INSTRUMENTS.values() for info in insts.values()]
-ALL_SYMBOLS_STR = ",".join(ALL_SYMBOLS)
 
 QUOTE_INTERVAL = 300       # Fetch quotes every 5 minutes
 HISTORY_INTERVAL = 3600    # Fetch history every 1 hour
@@ -54,11 +77,10 @@ def _collector_loop():
     last_gcs_sync = 0
 
     # Initial fetch on startup
-    # Batch quote uses ~6 credits (1 per symbol), so wait for rate limit reset
-    _fetch_and_store_quotes()
-    logger.info("Waiting 60s for rate limit reset before fetching history...")
-    time.sleep(60)
-    _fetch_and_store_all_history()
+    _fetch_index_quotes()
+    _fetch_eia_latest()
+    _fetch_index_history()
+    _fetch_eia_history()
     last_history_fetch = time.time()
 
     # Initial GCS upload
@@ -68,17 +90,23 @@ def _collector_loop():
     while True:
         time.sleep(QUOTE_INTERVAL)
 
-        # Always fetch quotes
+        # Fetch current prices
         try:
-            _fetch_and_store_quotes()
+            _fetch_index_quotes()
         except Exception as e:
-            logger.error("Quote fetch error: %s", e)
+            logger.error("Index quote fetch error: %s", e)
+
+        try:
+            _fetch_eia_latest()
+        except Exception as e:
+            logger.error("EIA quote fetch error: %s", e)
 
         # Fetch history less often
         now = time.time()
         if now - last_history_fetch >= HISTORY_INTERVAL:
             try:
-                _fetch_and_store_all_history()
+                _fetch_index_history()
+                _fetch_eia_history()
                 last_history_fetch = now
             except Exception as e:
                 logger.error("History fetch error: %s", e)
@@ -92,16 +120,18 @@ def _collector_loop():
                 logger.error("GCS sync error: %s", e)
 
 
-def _fetch_and_store_quotes():
-    """Batch fetch quotes for all symbols and store in SQLite."""
+# --- Twelve Data: Index quotes and history ---
+
+def _fetch_index_quotes():
+    """Batch fetch index quotes from Twelve Data (1 API call)."""
     if not TWELVE_DATA_KEY:
-        logger.warning("No TWELVE_DATA_KEY — skipping quote fetch")
+        logger.warning("No TWELVE_DATA_KEY — skipping index quote fetch")
         return
 
     try:
         resp = requests.get(
             "https://api.twelvedata.com/quote",
-            params={"symbol": ALL_SYMBOLS_STR, "apikey": TWELVE_DATA_KEY},
+            params={"symbol": INDEX_SYMBOLS_STR, "apikey": TWELVE_DATA_KEY},
             timeout=15,
         )
         if not resp.ok:
@@ -109,7 +139,7 @@ def _fetch_and_store_quotes():
             return
 
         data = resp.json()
-        for symbol in ALL_SYMBOLS:
+        for symbol in INDEX_SYMBOLS:
             d = data.get(symbol, {})
             if isinstance(d, dict) and "close" in d:
                 price = float(d["close"])
@@ -117,24 +147,21 @@ def _fetch_and_store_quotes():
                 change = round(price - prev, 2)
                 change_pct = f"{(change / prev * 100) if prev else 0:+.2f}%"
                 save_quote(symbol, price, change, change_pct)
-                logger.debug("Saved quote: %s = %.2f", symbol, price)
             else:
                 logger.warning("No quote data for %s: %s", symbol, d)
 
-        set_meta("last_quote_fetch", str(int(time.time())))
-        logger.info("Quotes updated for all symbols")
+        logger.info("Index quotes updated")
 
     except Exception as e:
-        logger.error("Quote fetch exception: %s", e)
+        logger.error("Index quote fetch exception: %s", e)
 
 
-def _fetch_and_store_all_history():
-    """Fetch daily history for each symbol and store in SQLite."""
+def _fetch_index_history():
+    """Fetch daily history for index ETFs from Twelve Data."""
     if not TWELVE_DATA_KEY:
-        logger.warning("No TWELVE_DATA_KEY — skipping history fetch")
         return
 
-    for symbol in ALL_SYMBOLS:
+    for symbol in INDEX_SYMBOLS:
         try:
             resp = requests.get(
                 "https://api.twelvedata.com/time_series",
@@ -149,32 +176,96 @@ def _fetch_and_store_all_history():
             if resp.ok:
                 resp_json = resp.json()
                 if resp_json.get("status") == "error":
-                    logger.error("History API error for %s: %s", symbol, resp_json.get("message", resp_json))
-                    time.sleep(8)
+                    logger.error("Index history API error for %s: %s", symbol, resp_json.get("message"))
                     continue
                 values = resp_json.get("values", [])
-                logger.info("History fetch for %s: got %d values", symbol, len(values))
-                records = []
-                for item in values:
-                    records.append({
-                        "date": item["datetime"],
-                        "close": float(item["close"]),
-                        "open": float(item.get("open", 0)),
-                        "high": float(item.get("high", 0)),
-                        "low": float(item.get("low", 0)),
-                        "volume": float(item.get("volume", 0)),
-                    })
+                records = [
+                    {"date": item["datetime"], "close": float(item["close"])}
+                    for item in reversed(values)
+                ]
                 save_history(symbol, records)
-                logger.debug("Saved %d history records for %s", len(records), symbol)
+                logger.info("Index history for %s: %d values", symbol, len(records))
             else:
-                logger.error("History fetch error for %s: %s", symbol, resp.status_code)
-
+                logger.error("Index history error for %s: %s", symbol, resp.status_code)
         except Exception as e:
-            logger.error("History fetch exception for %s: %s", symbol, e)
+            logger.error("Index history exception for %s: %s", symbol, e)
 
-        # Respect rate limit: 8 requests/min on free tier
-        # 12s between calls = 5 calls/min, safely under the limit
-        time.sleep(12)
+        time.sleep(12)  # Respect Twelve Data rate limit
 
-    set_meta("last_history_fetch", str(int(time.time())))
-    logger.info("History updated for all symbols")
+
+# --- EIA: Energy commodity quotes and history ---
+
+def _eia_fetch(endpoint, series, length=1):
+    """Generic EIA API v2 data fetch."""
+    url = f"https://api.eia.gov/v2/{endpoint}/data/"
+    params = {
+        "api_key": EIA_API_KEY,
+        "frequency": "daily",
+        "data[0]": "value",
+        "facets[series][]": series,
+        "sort[0][column]": "period",
+        "sort[0][direction]": "desc",
+        "length": str(length),
+    }
+    resp = requests.get(url, params=params, timeout=15)
+    if resp.ok:
+        return resp.json().get("response", {}).get("data", [])
+    else:
+        logger.error("EIA API error for %s: %s", series, resp.status_code)
+        return []
+
+
+def _fetch_eia_latest():
+    """Fetch latest prices for all 4 energy commodities from EIA."""
+    if not EIA_API_KEY:
+        logger.warning("No EIA_API_KEY — skipping EIA quote fetch")
+        return
+
+    for key, info in EIA_INSTRUMENTS.items():
+        try:
+            data = _eia_fetch(info["endpoint"], info["series"], length=2)
+            if data and len(data) >= 1:
+                price = float(data[0]["value"])
+                # Calculate day change from previous day if available
+                if len(data) >= 2:
+                    prev = float(data[1]["value"])
+                    change = round(price - prev, 4)
+                    change_pct = f"{(change / prev * 100) if prev else 0:+.2f}%"
+                else:
+                    change = 0
+                    change_pct = "+0.00%"
+
+                # Use the EIA series name as the symbol key in the database
+                save_quote(info["series"], price, change, change_pct)
+                logger.debug("EIA quote %s (%s): %.4f", key, info["series"], price)
+            else:
+                logger.warning("No EIA data for %s", key)
+        except Exception as e:
+            logger.error("EIA quote fetch error for %s: %s", key, e)
+
+    logger.info("EIA energy quotes updated")
+
+
+def _fetch_eia_history():
+    """Fetch daily history for all 4 energy commodities from EIA."""
+    if not EIA_API_KEY:
+        return
+
+    for key, info in EIA_INSTRUMENTS.items():
+        try:
+            data = _eia_fetch(info["endpoint"], info["series"], length=60)
+            if data:
+                # EIA returns newest first, reverse for chronological order
+                records = [
+                    {"date": item["period"], "close": float(item["value"])}
+                    for item in reversed(data)
+                    if item.get("value") is not None
+                ]
+                save_history(info["series"], records)
+                logger.info("EIA history for %s: %d values", key, len(records))
+            else:
+                logger.warning("No EIA history for %s", key)
+        except Exception as e:
+            logger.error("EIA history fetch error for %s: %s", key, e)
+
+    logger.info("EIA energy history updated")

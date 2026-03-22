@@ -7,18 +7,20 @@ from services.database import get_all_history, get_quote
 
 logger = logging.getLogger(__name__)
 
+# Indices use Twelve Data ETF symbols as DB keys
+# Energy commodities use EIA series names as DB keys
 INSTRUMENTS = {
     "indices": {
-        "sp500": {"symbol": "SPY", "label": "S&P 500", "exchange": "INDEX: SPX"},
-        "dji": {"symbol": "DIA", "label": "Dow Jones Industrial", "exchange": "INDEX: DJI"},
+        "sp500": {"db_key": "SPY", "label": "S&P 500", "exchange": "INDEX: SPX"},
+        "dji": {"db_key": "DIA", "label": "Dow Jones Industrial", "exchange": "INDEX: DJI"},
     },
     "crude": {
-        "wti": {"symbol": "USO", "label": "WTI crude oil futures", "exchange": "NYMEX: CL"},
-        "brent": {"symbol": "BNO", "label": "Brent crude oil futures", "exchange": "NYMEX: BZW00"},
+        "wti": {"db_key": "RWTC", "label": "WTI crude oil", "exchange": "CLW00: NYMEX"},
+        "brent": {"db_key": "RBRTE", "label": "Brent crude oil", "exchange": "NYMEX: BZW00"},
     },
     "fuel": {
-        "rbob": {"symbol": "UGA", "label": "RBOB gasoline futures", "exchange": "NYMEX: RB"},
-        "ng": {"symbol": "UNG", "label": "Henry Hub natural gas", "exchange": "NYMEX: NG"},
+        "rbob": {"db_key": "EER_EPMRU_PF4_RGC_DPG", "label": "RBOB gasoline", "exchange": "NYMEX: RB"},
+        "ng": {"db_key": "RNGWHHD", "label": "Henry Hub natural gas", "exchange": "NYMEX: NG"},
     },
 }
 
@@ -30,9 +32,9 @@ def get_all_prices():
     for section, instruments in INSTRUMENTS.items():
         data[section] = {}
         for key, info in instruments.items():
-            symbol = info["symbol"]
-            quote = get_quote(symbol)
-            history = get_all_history(symbol)
+            db_key = info["db_key"]
+            quote = get_quote(db_key)
+            history = get_all_history(db_key)
 
             data[section][key] = {
                 "label": info["label"],
