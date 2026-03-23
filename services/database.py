@@ -49,6 +49,24 @@ def init_db():
             key TEXT PRIMARY KEY,
             value TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS casualties (
+            date TEXT NOT NULL,
+            category TEXT NOT NULL,
+            value INTEGER NOT NULL,
+            source TEXT DEFAULT 'gemini_estimate',
+            fetched_at INTEGER,
+            PRIMARY KEY (date, category)
+        );
+
+        CREATE TABLE IF NOT EXISTS sources (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            url TEXT NOT NULL,
+            title TEXT,
+            source_group TEXT DEFAULT 'general',
+            fetched_at INTEGER,
+            UNIQUE(url, source_group)
+        );
     """)
     conn.commit()
     logger.info("Database initialized at %s", DB_PATH)
@@ -137,6 +155,89 @@ def set_meta(key, value):
         "INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
         (key, value),
     )
+    conn.commit()
+
+
+# --- Casualty Data ---
+
+def save_casualty(date, category, value):
+    """Save or update a casualty estimate for a given date and category."""
+    import time
+    conn = _get_conn()
+    conn.execute(
+        """INSERT OR REPLACE INTO casualties (date, category, value, source, fetched_at)
+           VALUES (?, ?, ?, 'gemini_estimate', ?)""",
+        (date, category, value, int(time.time())),
+    )
+    conn.commit()
+
+
+def get_casualties_by_category(category):
+    """Get all casualty records for a category, ordered by date ascending."""
+    conn = _get_conn()
+    rows = conn.execute(
+        "SELECT date, value FROM casualties WHERE category = ? ORDER BY date ASC",
+        (category,),
+    ).fetchall()
+    return [{"date": row["date"], "value": row["value"]} for row in rows]
+
+
+def get_all_casualties():
+    """Get all casualty data grouped by category."""
+    categories = [
+        "us_deaths", "iran_deaths", "other_deaths",
+        "us_injuries", "iran_injuries", "other_injuries",
+        "displaced",
+    ]
+    result = {}
+    for cat in categories:
+        result[cat] = get_casualties_by_category(cat)
+    return result
+
+
+def get_casualty_totals():
+    """Get the latest cumulative totals for each category."""
+    conn = _get_conn()
+    rows = conn.execute(
+        """SELECT category, SUM(value) as total
+           FROM casualties GROUP BY category""",
+    ).fetchall()
+    return {row["category"]: row["total"] for row in rows}
+
+
+# --- Source Data ---
+
+def save_source(url, title, source_group="general"):
+    """Save a source URL. Ignores duplicates within the same group."""
+    import time
+    conn = _get_conn()
+    conn.execute(
+        """INSERT OR IGNORE INTO sources (url, title, source_group, fetched_at)
+           VALUES (?, ?, ?, ?)""",
+        (url, title, source_group, int(time.time())),
+    )
+    conn.commit()
+
+
+def get_all_sources():
+    """Get all sources grouped by source_group."""
+    conn = _get_conn()
+    rows = conn.execute(
+        "SELECT url, title, source_group, fetched_at FROM sources ORDER BY fetched_at DESC",
+    ).fetchall()
+    grouped = {}
+    for row in rows:
+        grp = row["source_group"] or "general"
+        if grp not in grouped:
+            grouped[grp] = []
+        grouped[grp].append({"url": row["url"], "title": row["title"]})
+    return grouped
+
+
+def clear_sources():
+    """Delete all sources (used when refreshing data)."""
+    conn = _get_conn()
+    conn.execute("DELETE FROM sources")
     conn.commit()
 
 

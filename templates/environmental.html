@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Global Oil &amp; Gas Reduction Ticker{% endblock %}
+{% block title %}Environmental Impact{% endblock %}
 
 {% block head %}
 <style>
@@ -125,8 +125,8 @@
     <div class="ticker-header">Since March 1, 2026</div>
 
     <div class="counter-group">
-        <div class="glow-number" id="percent">0.000000%</div>
-        <div class="ticker-label">Global Oil &amp; Gas Production Reduced</div>
+        <div class="glow-number" id="co2">0</div>
+        <div class="ticker-label">Tons of CO2 Not Produced</div>
     </div>
 
     <div class="pre-epoch-note" id="pre-epoch-note">
@@ -155,8 +155,9 @@
     const EPOCH = new Date('2026-03-01T00:00:00Z').getTime();
     const MS_PER_DAY = 86400000;
     const DAYS_PER_PERCENT = 18.25;
+    const CO2_PER_PERCENT = 166000000;
 
-    const percentEl = document.getElementById('percent');
+    const co2El = document.getElementById('co2');
     const noteEl = document.getElementById('pre-epoch-note');
 
     function update() {
@@ -164,7 +165,7 @@
         const elapsed = now - EPOCH;
 
         if (elapsed < 0) {
-            percentEl.textContent = '0.000000%';
+            co2El.textContent = '0';
             noteEl.style.display = 'block';
             return;
         }
@@ -173,8 +174,9 @@
 
         const daysElapsed = elapsed / MS_PER_DAY;
         const percentReduced = daysElapsed / DAYS_PER_PERCENT;
+        const co2Tons = Math.floor(percentReduced * CO2_PER_PERCENT);
 
-        percentEl.textContent = percentReduced.toFixed(6) + '%';
+        co2El.textContent = co2Tons.toLocaleString('en-US');
     }
 
     update();

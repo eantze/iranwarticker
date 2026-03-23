@@ -1,0 +1,333 @@
+/* Casualties Dashboard */
+.casualties-page {
+    padding-top: 72px;
+    padding-bottom: 3rem;
+    min-height: 100vh;
+}
+
+.casualties-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Header */
+.cas-header {
+    margin-bottom: 2rem;
+}
+
+.cas-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.cas-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.15rem;
+}
+
+.cas-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+}
+
+.cas-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.cas-disclaimer {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--color-down);
+    opacity: 0.7;
+    margin-top: 0.5rem;
+    letter-spacing: 0.03em;
+}
+
+/* Summary Cards */
+.summary-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.summary-grid.summary-single {
+    margin-bottom: 0.5rem;
+}
+
+.summary-grid.summary-single .summary-card {
+    flex: 1 1 100%;
+}
+
+.summary-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 20px;
+    flex: 1 1 160px;
+    min-width: 140px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.summary-card.deaths {
+    border-color: rgba(255, 77, 106, 0.15);
+}
+
+.summary-card.injuries {
+    border-color: rgba(255, 170, 50, 0.15);
+}
+
+.summary-card.displaced {
+    border-color: rgba(100, 150, 255, 0.15);
+}
+
+.summary-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+}
+
+.summary-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.summary-value.deaths-color {
+    color: #ff4d6a;
+}
+
+.summary-value.injuries-color {
+    color: #ffaa32;
+}
+
+.summary-value.displaced-color {
+    color: #6496ff;
+}
+
+/* Section Headers — reuse markets style */
+.cas-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 2rem 0 1rem;
+}
+
+.cas-section-header span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.cas-section-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+/* Chart Cards */
+.chart-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.chart-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 20px;
+    flex: 1 1 480px;
+    min-width: 300px;
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+}
+
+.chart-area {
+    width: 100%;
+    height: 180px;
+}
+
+.chart-area svg {
+    width: 100%;
+    height: 100%;
+}
+
+.chart-footer {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+/* Sources Toggle */
+.sources-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 10px 14px;
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    transition: background 0.2s, color 0.2s;
+    user-select: none;
+}
+
+.sources-toggle:hover {
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+    color: var(--text-primary);
+}
+
+.sources-toggle-icon {
+    font-size: 0.5rem;
+    transition: transform 0.2s;
+    display: inline-block;
+}
+
+.sources-toggle-icon.open {
+    transform: rotate(90deg);
+}
+
+/* Sources */
+.sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.sources-list.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: 0;
+}
+
+.source-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+}
+
+.source-item a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: #6496ff;
+    text-decoration: none;
+    word-break: break-word;
+    transition: color 0.2s;
+}
+
+.source-item a:hover {
+    color: #8cb4ff;
+    text-decoration: underline;
+}
+
+.source-domain {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Footer */
+.casualties-footer {
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Loading */
+.cas-loading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 3rem 0;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .casualties-page {
+        padding-top: 62px;
+    }
+
+    .cas-title {
+        font-size: 1.15rem;
+    }
+
+    .summary-value {
+        font-size: 1.3rem;
+    }
+
+    .chart-card {
+        min-width: 100%;
+    }
+
+    .summary-card {
+        min-width: 45%;
+    }
+}

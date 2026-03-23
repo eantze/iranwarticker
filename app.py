@@ -22,6 +22,26 @@ def markets():
     return render_template('markets.html', active_page='markets')
 
 
+@app.route('/environmental-impact')
+def environmental_impact():
+    return render_template('environmental.html', active_page='environmental')
+
+
+@app.route('/casualties')
+def casualties():
+    return render_template('casualties.html', active_page='casualties')
+
+
+@app.route('/api/casualties')
+def api_casualties():
+    from services.database import get_all_casualties, get_casualty_totals, get_all_sources
+    return jsonify({
+        "totals": get_casualty_totals(),
+        "daily": get_all_casualties(),
+        "sources": get_all_sources(),
+    })
+
+
 @app.route('/api/prices')
 def api_prices():
     if DEMO_MODE:
@@ -37,6 +57,7 @@ def _startup():
     if not DEMO_MODE:
         from services.database import init_db, download_from_gcs
         from services.data_collector import start_collector
+        from services.casualty_collector import start_casualty_collector
 
         # Try to restore database from GCS first
         download_from_gcs()
@@ -46,6 +67,9 @@ def _startup():
 
         # Start background data collection
         start_collector()
+
+        # Start casualty data collection (Gemini)
+        start_casualty_collector()
 
 
 # Run startup when the module loads (works with both flask run and gunicorn)
