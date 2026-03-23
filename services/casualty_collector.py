@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent"
 GEMINI_SOURCE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent"
-CASUALTY_INTERVAL = 21600  # Re-check every 6 hours
+CASUALTY_INTERVAL = 86400  # Re-check once daily
 
 CATEGORIES = [
     "us_deaths",
