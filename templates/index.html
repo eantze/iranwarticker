@@ -17,14 +17,17 @@
         padding: 0 1.5rem;
         min-height: 100vh;
         justify-content: center;
+        position: relative;
     }
 
     .ticker-header {
         color: #ffffff;
         font-family: 'Courier New', monospace;
-        font-size: 1.2rem;
-        letter-spacing: 0.15em;
+        font-size: 0.95rem;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
+        max-width: 700px;
+        line-height: 1.6;
     }
 
     .counter-group {
@@ -63,6 +66,163 @@
         display: none;
     }
 
+    /* Assumptions row */
+    .assumptions-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+
+    .assumptions-customize {
+        color: rgba(0, 255, 200, 0.6);
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s;
+    }
+
+    .assumptions-customize:hover {
+        color: rgba(0, 255, 200, 1);
+    }
+
+    /* Settings panel */
+    .settings-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .settings-overlay.open {
+        display: flex;
+    }
+
+    .settings-panel {
+        background: #111;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 440px;
+        font-family: 'Courier New', monospace;
+        color: #fff;
+    }
+
+    .settings-title {
+        font-size: 0.85rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .settings-close {
+        cursor: pointer;
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.5);
+        transition: color 0.2s;
+        background: none;
+        border: none;
+        font-family: inherit;
+    }
+
+    .settings-close:hover {
+        color: #fff;
+    }
+
+    .setting-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .setting-label {
+        display: block;
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 0.5rem;
+    }
+
+    .setting-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        padding: 0.6rem 0.8rem;
+        color: #fff;
+        font-family: 'Courier New', monospace;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    .setting-input:focus {
+        border-color: rgba(0, 255, 200, 0.5);
+    }
+
+    .setting-hint {
+        font-size: 0.55rem;
+        color: rgba(255, 255, 255, 0.35);
+        margin-top: 0.3rem;
+        letter-spacing: 0.05em;
+    }
+
+    .settings-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn-apply {
+        flex: 1;
+        padding: 0.6rem;
+        border: 1px solid rgba(0, 255, 200, 0.4);
+        border-radius: 6px;
+        background: rgba(0, 255, 200, 0.1);
+        color: rgba(0, 255, 200, 0.9);
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-apply:hover {
+        background: rgba(0, 255, 200, 0.2);
+    }
+
+    .btn-reset {
+        flex: 1;
+        padding: 0.6rem;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.6);
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-reset:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Assumptions */
     .assumptions-toggle {
         color: #ffffff;
         font-family: 'Courier New', monospace;
@@ -116,35 +276,82 @@
         .ticker-label {
             font-size: 0.85rem;
         }
+
+        .settings-panel {
+            padding: 1.5rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="ticker-container">
-    <div class="ticker-header">Since March 1, 2026</div>
+    <div class="ticker-header" id="ticker-header">Since March 1, 2026 the Strait of Hormuz has been closed resulting in a 20% reduction in global oil production</div>
 
     <div class="counter-group">
+        <div class="ticker-label">Total Impact</div>
         <div class="glow-number" id="percent">0.000000%</div>
-        <div class="ticker-label">Global Oil &amp; Gas Production Reduced</div>
+        <div class="ticker-label">Yearly Global Oil &amp; Gas Production Reduced</div>
+    </div>
+
+    <div class="counter-group">
+        <div class="glow-number" id="barrels">0</div>
+        <div class="ticker-label">Yearly Global Barrels Not Produced</div>
     </div>
 
     <div class="pre-epoch-note" id="pre-epoch-note">
-        Countdown begins March 1, 2026
+        Ticker has not started yet
     </div>
 
     <div class="assumptions-section">
-        <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
-            &#9662; our assumptions
+        <div class="assumptions-row">
+            <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
+                &#9662; assumptions
+            </div>
+            <div class="assumptions-customize" onclick="openSettings()">
+                &#9998; customize
+            </div>
         </div>
         <div class="assumptions-content" id="assumptions">
             <ul>
-                <li>March 1st the Strait of Hormuz was closed due to the war with Iran.</li>
-                <li>20% of the world's oil production moves through the Strait of Hormuz</li>
-                <li>Each day the strait remains closed the world is producing 20% less oil</li>
-                <li>20% of the world's oil production for one year is roughly 7.5 billion barrels</li>
-                <li>430 kg of CO2 is produced per barrel of oil</li>
+                <li id="a-closure">March 1st the Strait of Hormuz was closed due to the war with Iran.</li>
+                <li id="a-reduction">Each day the strait remains closed the world is producing 20% less oil.</li>
+                <li id="a-barrels">20% of the world's oil production for one year is roughly 7.5 billion barrels.</li>
             </ul>
+        </div>
+    </div>
+</div>
+
+
+<!-- Settings overlay -->
+<div class="settings-overlay" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+    <div class="settings-panel">
+        <div class="settings-title">
+            <span>Adjust Assumptions</span>
+            <button class="settings-close" onclick="closeSettings()">&times;</button>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-production">Yearly Global Oil Production (Billion Barrels)</label>
+            <input class="setting-input" id="input-production" type="number" step="0.1" min="0.1">
+            <div class="setting-hint">Default: 36.5 billion barrels (~100M barrels/day)</div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-reduction">Production Reduction (%)</label>
+            <input class="setting-input" id="input-reduction" type="number" step="0.1" min="0.1" max="100">
+            <div class="setting-hint">Default: 20% (share of oil through Strait of Hormuz)</div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-date">Date Strait Closed</label>
+            <input class="setting-input" id="input-date" type="date">
+            <div class="setting-hint">Default: 2026-03-01</div>
+        </div>
+
+        <div class="settings-actions">
+            <button class="btn-apply" onclick="applySettings()">Apply</button>
+            <button class="btn-reset" onclick="resetSettings()">Reset Defaults</button>
         </div>
     </div>
 </div>
@@ -152,19 +359,91 @@
 
 {% block scripts %}
 <script>
-    const EPOCH = new Date('2026-03-01T00:00:00Z').getTime();
     const MS_PER_DAY = 86400000;
-    const DAYS_PER_PERCENT = 18.25;
 
+    // Defaults
+    const DEFAULT_PRODUCTION = 36.5;  // billion barrels/year
+    const DEFAULT_REDUCTION = 20;     // percent
+    const DEFAULT_DATE = '2026-03-01';
+
+    // Active values (can be changed by user)
+    let yearlyProduction = DEFAULT_PRODUCTION;
+    let reductionPercent = DEFAULT_REDUCTION;
+    let epochDate = DEFAULT_DATE;
+    let epoch = new Date(DEFAULT_DATE + 'T00:00:00Z').getTime();
+
+    // Load saved settings from localStorage
+    function loadSettings() {
+        try {
+            const saved = localStorage.getItem('ticker_settings');
+            if (saved) {
+                const s = JSON.parse(saved);
+                if (s.production) yearlyProduction = s.production;
+                if (s.reduction) reductionPercent = s.reduction;
+                if (s.date) {
+                    epochDate = s.date;
+                    epoch = new Date(s.date + 'T00:00:00Z').getTime();
+                }
+            }
+        } catch (e) {}
+        updateAssumptionsText();
+        updateHeader();
+    }
+
+    function saveSettings() {
+        localStorage.setItem('ticker_settings', JSON.stringify({
+            production: yearlyProduction,
+            reduction: reductionPercent,
+            date: epochDate,
+        }));
+    }
+
+    // Derived values
+    function getBarrelsPerDay() {
+        return (yearlyProduction * 1e9 / 365) * (reductionPercent / 100);
+    }
+
+    function getDaysPerPercent() {
+        return 365 / reductionPercent;
+    }
+
+    // DOM
     const percentEl = document.getElementById('percent');
+    const barrelsEl = document.getElementById('barrels');
     const noteEl = document.getElementById('pre-epoch-note');
+    const headerEl = document.getElementById('ticker-header');
+
+    function updateHeader() {
+        const d = new Date(epochDate + 'T00:00:00Z');
+        const months = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+        const dateStr = months[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+        headerEl.textContent = 'Since ' + dateStr + ' the Strait of Hormuz has been closed resulting in a ' + reductionPercent + '% reduction in global oil production';
+    }
+
+    function updateAssumptionsText() {
+        const d = new Date(epochDate + 'T00:00:00Z');
+        const months = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+        const dateStr = months[d.getUTCMonth()] + ' ' + d.getUTCDate();
+        const pct = reductionPercent;
+        const reducedBbl = (yearlyProduction * (pct / 100)).toFixed(1);
+
+        document.getElementById('a-closure').textContent =
+            dateStr + ' the Strait of Hormuz was closed due to the war with Iran.';
+        document.getElementById('a-reduction').textContent =
+            'Each day the strait remains closed the world is producing ' + pct + '% less oil.';
+        document.getElementById('a-barrels').textContent =
+            pct + '% of the world\'s oil production for one year is roughly ' + reducedBbl + ' billion barrels.';
+    }
 
     function update() {
         const now = Date.now();
-        const elapsed = now - EPOCH;
+        const elapsed = now - epoch;
 
         if (elapsed < 0) {
             percentEl.textContent = '0.000000%';
+            barrelsEl.textContent = '0';
             noteEl.style.display = 'block';
             return;
         }
@@ -172,11 +451,65 @@
         noteEl.style.display = 'none';
 
         const daysElapsed = elapsed / MS_PER_DAY;
-        const percentReduced = daysElapsed / DAYS_PER_PERCENT;
+        const percentReduced = daysElapsed / getDaysPerPercent();
+        const barrelsNotProduced = Math.floor(daysElapsed * getBarrelsPerDay());
 
         percentEl.textContent = percentReduced.toFixed(6) + '%';
+        barrelsEl.textContent = barrelsNotProduced.toLocaleString('en-US');
     }
 
+    // Settings panel
+    function openSettings() {
+        document.getElementById('input-production').value = yearlyProduction;
+        document.getElementById('input-reduction').value = reductionPercent;
+        document.getElementById('input-date').value = epochDate;
+        document.getElementById('settings-overlay').classList.add('open');
+    }
+
+    function closeSettings() {
+        document.getElementById('settings-overlay').classList.remove('open');
+    }
+
+    function applySettings() {
+        const prod = parseFloat(document.getElementById('input-production').value);
+        const red = parseFloat(document.getElementById('input-reduction').value);
+        const date = document.getElementById('input-date').value;
+
+        if (!prod || prod <= 0 || !red || red <= 0 || red > 100 || !date) return;
+
+        yearlyProduction = prod;
+        reductionPercent = red;
+        epochDate = date;
+        epoch = new Date(date + 'T00:00:00Z').getTime();
+
+        saveSettings();
+        updateAssumptionsText();
+        updateHeader();
+        closeSettings();
+    }
+
+    function resetSettings() {
+        yearlyProduction = DEFAULT_PRODUCTION;
+        reductionPercent = DEFAULT_REDUCTION;
+        epochDate = DEFAULT_DATE;
+        epoch = new Date(DEFAULT_DATE + 'T00:00:00Z').getTime();
+
+        document.getElementById('input-production').value = DEFAULT_PRODUCTION;
+        document.getElementById('input-reduction').value = DEFAULT_REDUCTION;
+        document.getElementById('input-date').value = DEFAULT_DATE;
+
+        localStorage.removeItem('ticker_settings');
+        updateAssumptionsText();
+        updateHeader();
+        closeSettings();
+    }
+
+    // Keyboard shortcut: Escape closes settings
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeSettings();
+    });
+
+    loadSettings();
     update();
     setInterval(update, 80);
 </script>
