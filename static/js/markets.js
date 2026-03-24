@@ -1,6 +1,122 @@
-// Markets Dashboard - Yahoo Finance charts with March 1 marker
+// Markets Dashboard - Yahoo Finance charts with customizable date range and strait marker
 
-const MARCH1 = "2026-03-01";
+const DEFAULT_START = "2026-01-01";
+const DEFAULT_STRAIT = "2026-03-01";
+const SHARED_STRAIT_KEY = "shared_strait_date";
+const MARKETS_SETTINGS_KEY = "markets_settings";
+
+let startDate = DEFAULT_START;
+let straitDate = DEFAULT_STRAIT;
+let rawData = null;  // Full data from API
+
+function loadSettings() {
+    // Load shared strait date (persists across tabs)
+    try {
+        const shared = localStorage.getItem(SHARED_STRAIT_KEY);
+        if (shared) straitDate = shared;
+    } catch (e) {}
+
+    // Load markets-specific start date
+    try {
+        const saved = localStorage.getItem(MARKETS_SETTINGS_KEY);
+        if (saved) {
+            const s = JSON.parse(saved);
+            if (s.startDate) startDate = s.startDate;
+        }
+    } catch (e) {}
+
+    // Also check if Oil & Gas page or Environmental page has set a date
+    try {
+        const tickerSettings = localStorage.getItem("ticker_settings");
+        if (tickerSettings) {
+            const s = JSON.parse(tickerSettings);
+            if (s.date) {
+                straitDate = s.date;
+                localStorage.setItem(SHARED_STRAIT_KEY, s.date);
+            }
+        }
+    } catch (e) {}
+
+    try {
+        const envSettings = localStorage.getItem("env_ticker_settings");
+        if (envSettings) {
+            const s = JSON.parse(envSettings);
+            if (s.date) {
+                straitDate = s.date;
+                localStorage.setItem(SHARED_STRAIT_KEY, s.date);
+            }
+        }
+    } catch (e) {}
+
+    // Set input values
+    document.getElementById("input-start-date").value = startDate;
+    document.getElementById("input-strait-date").value = straitDate;
+    updateSubtitle();
+}
+
+function saveSettings() {
+    localStorage.setItem(MARKETS_SETTINGS_KEY, JSON.stringify({ startDate }));
+    localStorage.setItem(SHARED_STRAIT_KEY, straitDate);
+
+    // Also update the other pages' settings so strait date persists
+    try {
+        const ticker = localStorage.getItem("ticker_settings");
+        if (ticker) {
+            const s = JSON.parse(ticker);
+            s.date = straitDate;
+            localStorage.setItem("ticker_settings", JSON.stringify(s));
+        }
+    } catch (e) {}
+
+    try {
+        const env = localStorage.getItem("env_ticker_settings");
+        if (env) {
+            const s = JSON.parse(env);
+            s.date = straitDate;
+            localStorage.setItem("env_ticker_settings", JSON.stringify(s));
+        }
+    } catch (e) {}
+}
+
+function updateSubtitle() {
+    const el = document.getElementById("dash-subtitle");
+    if (el) {
+        const start = new Date(startDate + "T00:00:00Z");
+        const startStr = start.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+        el.textContent = `${startStr} — Present`;
+    }
+}
+
+function applyControls() {
+    const newStart = document.getElementById("input-start-date").value;
+    const newStrait = document.getElementById("input-strait-date").value;
+
+    if (newStart && newStart >= "2026-01-01") startDate = newStart;
+    if (newStrait && newStrait >= "2026-01-01") straitDate = newStrait;
+
+    saveSettings();
+    updateSubtitle();
+
+    if (rawData) renderDashboard(rawData);
+}
+
+function resetControls() {
+    startDate = DEFAULT_START;
+    straitDate = DEFAULT_STRAIT;
+
+    document.getElementById("input-start-date").value = DEFAULT_START;
+    document.getElementById("input-strait-date").value = DEFAULT_STRAIT;
+
+    localStorage.removeItem(MARKETS_SETTINGS_KEY);
+    localStorage.removeItem(SHARED_STRAIT_KEY);
+    updateSubtitle();
+
+    if (rawData) renderDashboard(rawData);
+}
+
+// Make these available globally for onclick
+window.applyControls = applyControls;
+window.resetControls = resetControls;
 
 async function fetchPrices() {
     const resp = await fetch("/api/prices");
@@ -13,11 +129,16 @@ function formatPrice(price, key) {
     return price.toFixed(2);
 }
 
+function filterHistory(history) {
+    if (!history) return [];
+    return history.filter(d => d.date >= startDate);
+}
+
 function buildChart(key, instrument) {
     const container = document.getElementById(`chartbody-${key}`);
     if (!container) return;
 
-    const history = instrument.history || [];
+    const history = filterHistory(instrument.history);
     if (history.length < 2) {
         container.innerHTML = '<div class="chart-loading">Loading data...</div>';
         return;
@@ -38,7 +159,6 @@ function buildChart(key, instrument) {
     const max = Math.max(...closes);
     const range = max - min || 1;
 
-    // Add some padding to Y range
     const yMin = min - range * 0.05;
     const yMax = max + range * 0.05;
     const yRange = yMax - yMin;
@@ -46,18 +166,19 @@ function buildChart(key, instrument) {
     function xPos(i) { return PAD_L + (i / (closes.length - 1)) * chartW; }
     function yPos(v) { return PAD_T + (1 - (v - yMin) / yRange) * chartH; }
 
-    // Build line path
     const linePts = closes.map((v, i) => `${xPos(i)},${yPos(v)}`).join(" ");
-
-    // Fill area
     const areaPts = `${xPos(0)},${PAD_T + chartH} ${linePts} ${xPos(closes.length - 1)},${PAD_T + chartH}`;
 
-    // Find March 1 position
-    let march1X = null;
-    let march1Idx = dates.findIndex(d => d >= MARCH1);
-    if (march1Idx >= 0) {
-        march1X = xPos(march1Idx);
+    // Find strait closure marker position
+    let markerX = null;
+    let markerIdx = dates.findIndex(d => d >= straitDate);
+    if (markerIdx >= 0) {
+        markerX = xPos(markerIdx);
     }
+
+    // Format the strait date for label
+    const straitD = new Date(straitDate + "T00:00:00Z");
+    const straitLabel = straitD.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
     // Determine overall trend color
     const first = closes[0];
@@ -75,24 +196,21 @@ function buildChart(key, instrument) {
         yLabels += `<line x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" class="grid-line"/>`;
     }
 
-    // X-axis date labels (first, march 1, last)
+    // X-axis date labels
     let xLabels = "";
     xLabels += `<text x="${PAD_L}" y="${H - 8}" text-anchor="start" class="axis-label">${dates[0]}</text>`;
     xLabels += `<text x="${W - PAD_R}" y="${H - 8}" text-anchor="end" class="axis-label">${dates[dates.length - 1]}</text>`;
 
-    // March 1 marker
-    let march1Marker = "";
-    if (march1X !== null) {
-        march1Marker = `
-            <line x1="${march1X}" y1="${PAD_T}" x2="${march1X}" y2="${PAD_T + chartH}"
+    // Strait closure marker
+    let markerSvg = "";
+    if (markerX !== null) {
+        markerSvg = `
+            <line x1="${markerX}" y1="${PAD_T}" x2="${markerX}" y2="${PAD_T + chartH}"
                 class="march1-line"/>
-            <text x="${march1X}" y="${H - 8}" text-anchor="middle" class="march1-label">Mar 1</text>
-            <text x="${march1X + 4}" y="${PAD_T + 14}" text-anchor="start" class="march1-tag">Strait Closed</text>
+            <text x="${markerX}" y="${H - 8}" text-anchor="middle" class="march1-label">${straitLabel}</text>
+            <text x="${markerX + 4}" y="${PAD_T + 14}" text-anchor="start" class="march1-tag">Strait Closed</text>
         `;
     }
-
-    // Hover tooltip elements
-    const gid = "tt" + Math.random().toString(36).slice(2, 7);
 
     const svg = `
         <svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" class="market-chart"
@@ -104,28 +222,19 @@ function buildChart(key, instrument) {
                 </linearGradient>
             </defs>
 
-            <!-- Grid -->
             ${yLabels}
 
-            <!-- Area fill -->
             <polygon points="${areaPts}" fill="url(#grad-${key})"/>
 
-            <!-- Price line -->
             <polyline points="${linePts}" fill="none" stroke="${lineColor}"
                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 
-            <!-- March 1 marker -->
-            ${march1Marker}
-
-            <!-- X axis labels -->
+            ${markerSvg}
             ${xLabels}
 
-            <!-- Hover overlay -->
             <rect x="${PAD_L}" y="${PAD_T}" width="${chartW}" height="${chartH}"
-                fill="transparent" class="hover-zone"
-                data-key="${key}" />
+                fill="transparent" class="hover-zone" data-key="${key}" />
 
-            <!-- Tooltip elements (hidden by default) -->
             <line id="hover-line-${key}" x1="0" y1="${PAD_T}" x2="0" y2="${PAD_T + chartH}"
                 class="hover-crosshair" style="display:none"/>
             <circle id="hover-dot-${key}" r="4" fill="${lineColor}" stroke="#0a0a1a" stroke-width="2"
@@ -150,7 +259,6 @@ function buildChart(key, instrument) {
         const scaleX = W / svgW;
         const mouseX = (e.clientX - rect.left) * scaleX;
 
-        // Find closest data point
         const idx = Math.round(((mouseX - PAD_L) / chartW) * (closes.length - 1));
         const clampedIdx = Math.max(0, Math.min(closes.length - 1, idx));
 
@@ -178,7 +286,6 @@ function buildChart(key, instrument) {
         text.textContent = valStr;
         dateText.textContent = date;
 
-        // Position tooltip
         const ttX = px < W / 2 ? px + 12 : px - 100;
         const ttY = Math.max(PAD_T, py - 30);
         text.setAttribute("x", ttX + 6);
@@ -215,13 +322,16 @@ function updateQuoteDisplay(key, instrument) {
     const color = isUp ? "#00e5a0" : "#ff4d6a";
     const arrow = isUp ? "▲" : "▼";
 
-    // Calculate change since Jan 1 from history
-    let sinceJan1 = "";
-    if (instrument.history && instrument.history.length > 0) {
-        const first = instrument.history[0].close;
+    // Calculate change since start of visible range
+    const filteredHistory = filterHistory(instrument.history);
+    let sinceStart = "";
+    if (filteredHistory.length > 0) {
+        const first = filteredHistory[0].close;
         const pct = ((instrument.price - first) / first * 100);
-        sinceJan1 = `<span class="quote-ytd" style="color: ${pct >= 0 ? '#00e5a0' : '#ff4d6a'}">
-            YTD: ${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%
+        const startD = new Date(startDate + "T00:00:00Z");
+        const label = startD.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+        sinceStart = `<span class="quote-ytd" style="color: ${pct >= 0 ? '#00e5a0' : '#ff4d6a'}">
+            Since ${label}: ${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%
         </span>`;
     }
 
@@ -230,11 +340,12 @@ function updateQuoteDisplay(key, instrument) {
         <span class="quote-change" style="color: ${color}">
             ${arrow} ${change >= 0 ? '+' : ''}${Math.abs(change).toFixed(2)} (${changePct})
         </span>
-        ${sinceJan1}
+        ${sinceStart}
     `;
 }
 
 function renderDashboard(data) {
+    rawData = data;
     const keys = ["sp500", "dji", "wti", "brent"];
     for (const key of keys) {
         const instrument = data[key];
@@ -243,7 +354,6 @@ function renderDashboard(data) {
         buildChart(key, instrument);
     }
 
-    // Update timestamp
     const tsEl = document.getElementById("last-updated");
     if (tsEl && data.updated_at) {
         const d = new Date(data.updated_at * 1000);
@@ -268,6 +378,7 @@ function updateDate() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+    loadSettings();
     updateClock();
     updateDate();
     setInterval(updateClock, 1000);

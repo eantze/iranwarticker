@@ -55,6 +55,86 @@
     color: var(--text-muted);
 }
 
+/* Controls Bar */
+.markets-controls {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.control-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.control-input {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 0.45rem 0.6rem;
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    outline: none;
+    transition: border-color 0.2s;
+    color-scheme: dark;
+}
+
+.control-input:focus {
+    border-color: rgba(0, 255, 200, 0.5);
+}
+
+.control-btn {
+    padding: 0.45rem 1rem;
+    border: 1px solid rgba(0, 255, 200, 0.4);
+    border-radius: 6px;
+    background: rgba(0, 255, 200, 0.1);
+    color: rgba(0, 255, 200, 0.9);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.control-btn:hover {
+    background: rgba(0, 255, 200, 0.2);
+}
+
+.control-btn-reset {
+    padding: 0.45rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.control-btn-reset:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+}
+
 /* Charts Grid */
 .charts-grid {
     display: grid;

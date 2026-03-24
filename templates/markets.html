@@ -14,13 +14,27 @@
             <div class="dash-header-top">
                 <div>
                     <h1 class="dash-title">Markets Dashboard</h1>
-                    <div class="dash-subtitle">Jan 1, 2026 — Present</div>
+                    <div class="dash-subtitle" id="dash-subtitle">Jan 1, 2026 — Present</div>
                 </div>
                 <div class="dash-right">
                     <span class="dash-date" id="dash-date"></span>
                     <span class="dash-clock" id="dash-clock"></span>
                 </div>
             </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="markets-controls">
+            <div class="control-group">
+                <label class="control-label" for="input-start-date">Start Date</label>
+                <input class="control-input" id="input-start-date" type="date" min="2026-01-01">
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="input-strait-date">Strait Closed</label>
+                <input class="control-input" id="input-strait-date" type="date" min="2026-01-01">
+            </div>
+            <button class="control-btn" id="btn-apply" onclick="applyControls()">Apply</button>
+            <button class="control-btn-reset" id="btn-reset" onclick="resetControls()">Reset</button>
         </div>
 
         <!-- Charts -->

@@ -392,6 +392,14 @@
                 if (s.co2) co2KgPerBarrel = s.co2;
             }
         } catch (e) {}
+        // Also check shared strait date
+        try {
+            const shared = localStorage.getItem('shared_strait_date');
+            if (shared) {
+                epochDate = shared;
+                epoch = new Date(shared + 'T00:00:00Z').getTime();
+            }
+        } catch (e) {}
         updateAssumptionsText();
         updateHeader();
     }
@@ -403,6 +411,7 @@
             date: epochDate,
             co2: co2KgPerBarrel,
         }));
+        localStorage.setItem('shared_strait_date', epochDate);
     }
 
     // Derived values
