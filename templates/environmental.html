@@ -287,13 +287,13 @@
     <div class="ticker-header" id="ticker-header">Since March 1, 2026 the Strait of Hormuz has been closed resulting in a 20% reduction in global oil production</div>
 
     <div class="counter-group">
-        <div class="glow-number" id="co2">0</div>
-        <div class="ticker-label">Yearly Tons of CO2 Not Produced</div>
+        <div class="glow-number" id="barrels">0</div>
+        <div class="ticker-label">Yearly Global Barrels Not Produced</div>
     </div>
 
     <div class="counter-group">
-        <div class="glow-number" id="barrels">0</div>
-        <div class="ticker-label">Yearly Global Barrels Not Produced</div>
+        <div class="glow-number" id="co2">0</div>
+        <div class="ticker-label">Yearly Kg of CO2 Not Produced</div>
     </div>
 
     <div class="pre-epoch-note" id="pre-epoch-note">
@@ -457,9 +457,9 @@
 
         const daysElapsed = elapsed / MS_PER_DAY;
         const barrelsNotProduced = Math.floor(daysElapsed * getBarrelsPerDay());
-        const co2Tons = Math.floor(barrelsNotProduced * co2KgPerBarrel / 1000);
+        const co2Kg = Math.floor(barrelsNotProduced * co2KgPerBarrel);
 
-        co2El.textContent = co2Tons.toLocaleString('en-US');
+        co2El.textContent = co2Kg.toLocaleString('en-US');
         barrelsEl.textContent = barrelsNotProduced.toLocaleString('en-US');
     }
 
