@@ -19,39 +19,8 @@
 .dash-header-top {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     margin-bottom: 0.25rem;
-}
-
-.live-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: var(--color-up);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.live-dot {
-    width: 7px;
-    height: 7px;
-    background: var(--color-up);
-    border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 229, 160, 0.5); }
-    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0, 229, 160, 0); }
-}
-
-.dash-clock {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
 }
 
 .dash-title {
@@ -69,197 +38,107 @@
     letter-spacing: 0.05em;
 }
 
-.dash-date {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
+.dash-right {
     text-align: right;
 }
 
-/* Section Headers */
-.section-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin: 2rem 0 1rem;
-}
-
-.section-header span {
+.dash-date {
+    display: block;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 600;
+    font-size: 0.8rem;
     color: var(--text-secondary);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    white-space: nowrap;
 }
 
-.section-header::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.07);
+.dash-clock {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
 }
 
-/* Card Grid */
-.card-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
+/* Charts Grid */
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
 }
 
-/* Price Cards */
-.price-card {
+/* Chart Card */
+.chart-card {
     background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 16px;
     padding: 20px;
-    flex: 1 1 280px;
-    min-width: 260px;
-    position: relative;
     overflow: hidden;
-    backdrop-filter: blur(12px);
 }
 
-.price-card::before {
-    content: '';
-    position: absolute;
-    top: -40px;
-    right: -40px;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--card-glow) 0%, transparent 70%);
-    opacity: 0.15;
-    pointer-events: none;
-}
-
-.card-exchange {
-    display: inline-block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem;
-    font-weight: 600;
-    color: var(--color-up);
-    background: rgba(0, 229, 160, 0.1);
-    padding: 2px 8px;
-    border-radius: 4px;
-    letter-spacing: 0.08em;
-    margin-bottom: 4px;
-}
-
-.card-freq {
-    display: inline-block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem;
-    color: var(--text-muted);
-    background: rgba(255, 255, 255, 0.04);
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-left: 6px;
-    margin-bottom: 4px;
-}
-
-.card-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 8px;
-}
-
-.card-price-row {
+.chart-header {
     display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    margin-bottom: 6px;
-}
-
-.card-price {
-    font-family: 'Space Mono', monospace;
-    font-size: 1.85rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    line-height: 1;
-}
-
-.card-unit {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--text-muted);
-}
-
-.card-change {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    font-weight: 500;
-    padding: 3px 8px;
-    border-radius: 6px;
-    margin-bottom: 4px;
-}
-
-.card-change.up {
-    color: var(--color-up);
-    background: rgba(0, 229, 160, 0.1);
-}
-
-.card-change.down {
-    color: var(--color-down);
-    background: rgba(255, 77, 106, 0.1);
-}
-
-.card-period-change {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    color: var(--text-muted);
+    justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 12px;
 }
 
-.card-sparkline {
-    margin: 8px 0 4px;
-}
-
-.card-sparkline svg {
-    width: 100%;
-    height: 60px;
-}
-
-.sparkline-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.chart-title {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.chart-quote {
+    text-align: right;
+}
+
+.quote-price {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.quote-change {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.quote-ytd {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    margin-top: 2px;
+}
+
+.quote-loading {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.3rem;
     color: var(--text-muted);
 }
 
-.sparkline-footer .count {
-    opacity: 0.5;
+/* Chart Body */
+.chart-body {
+    width: 100%;
+    min-height: 180px;
 }
 
-/* Price Flash */
-.price-flash {
-    animation: flash 0.5s ease-out;
+.chart-body svg {
+    width: 100%;
+    height: auto;
 }
 
-@keyframes flash {
-    0% { text-shadow: 0 0 20px var(--flash-color, rgba(0, 229, 160, 0.8)); }
-    100% { text-shadow: none; }
-}
-
-/* Loading State */
-.card-loading {
-    opacity: 0.4;
-}
-
-.card-loading .card-price {
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 4px;
-    color: transparent;
+.chart-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 180px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
     animation: shimmer 1.5s ease-in-out infinite;
 }
 
@@ -268,9 +147,65 @@
     50% { opacity: 0.7; }
 }
 
-/* Error State */
-.card-error .card-price {
-    color: var(--text-muted);
+/* SVG Chart Styles */
+.market-chart .axis-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    fill: rgba(255, 255, 255, 0.35);
+}
+
+.market-chart .grid-line {
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 1;
+}
+
+.market-chart .march1-line {
+    stroke: rgba(255, 165, 0, 0.6);
+    stroke-width: 1.5;
+    stroke-dasharray: 6, 4;
+}
+
+.market-chart .march1-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    fill: rgba(255, 165, 0, 0.8);
+    font-weight: 600;
+}
+
+.market-chart .march1-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    fill: rgba(255, 165, 0, 0.6);
+}
+
+/* Hover tooltip */
+.market-chart .hover-zone {
+    cursor: crosshair;
+}
+
+.market-chart .hover-crosshair {
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 1;
+    stroke-dasharray: 3, 3;
+}
+
+.market-chart .tooltip-bg {
+    fill: rgba(20, 20, 40, 0.9);
+    stroke: rgba(255, 255, 255, 0.15);
+    stroke-width: 1;
+}
+
+.market-chart .tooltip-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    fill: #ffffff;
+    font-weight: 700;
+}
+
+.market-chart .tooltip-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    fill: rgba(255, 255, 255, 0.5);
 }
 
 /* Footer */
@@ -285,20 +220,20 @@
 }
 
 /* Responsive */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .markets-page {
         padding-top: 62px;
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
     }
 
     .dash-title {
         font-size: 1.15rem;
     }
 
-    .card-price {
-        font-size: 1.5rem;
-    }
-
-    .price-card {
-        min-width: 100%;
+    .quote-price {
+        font-size: 1.1rem;
     }
 }

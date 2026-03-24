@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Markets &amp; Energy Tracker{% endblock %}
+{% block title %}Markets Dashboard{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="/static/css/markets.css">
@@ -12,38 +12,56 @@
         <!-- Dashboard Header -->
         <div class="dash-header">
             <div class="dash-header-top">
-                <div class="live-badge">
-                    <span class="live-dot"></span>
-                    LIVE — All instruments updating
-                    <span id="demo-badge" style="display:none; color: rgba(255,255,255,0.3); margin-left: 8px;">(DEMO DATA)</span>
-                </div>
-                <span class="dash-clock" id="dash-clock"></span>
-            </div>
-            <div class="dash-header-top">
                 <div>
-                    <h1 class="dash-title">Markets &amp; Energy Tracker</h1>
-                    <div class="dash-subtitle">Hourly since Mar 1, 2026</div>
+                    <h1 class="dash-title">Markets Dashboard</h1>
+                    <div class="dash-subtitle">Jan 1, 2026 — Present</div>
                 </div>
-                <span class="dash-date" id="dash-date"></span>
+                <div class="dash-right">
+                    <span class="dash-date" id="dash-date"></span>
+                    <span class="dash-clock" id="dash-clock"></span>
+                </div>
             </div>
         </div>
 
-        <!-- Market Indices -->
-        <div class="section-header"><span>Market Indices</span></div>
-        <div class="card-grid" id="grid-indices"></div>
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card" id="chart-sp500">
+                <div class="chart-header">
+                    <div class="chart-title">S&P 500</div>
+                    <div class="chart-quote" id="quote-sp500">--</div>
+                </div>
+                <div class="chart-body" id="chartbody-sp500"></div>
+            </div>
 
-        <!-- Crude Oil Futures -->
-        <div class="section-header"><span>Crude Oil Futures</span></div>
-        <div class="card-grid" id="grid-crude"></div>
+            <div class="chart-card" id="chart-dji">
+                <div class="chart-header">
+                    <div class="chart-title">Dow Jones Industrial</div>
+                    <div class="chart-quote" id="quote-dji">--</div>
+                </div>
+                <div class="chart-body" id="chartbody-dji"></div>
+            </div>
 
-        <!-- Fuel Futures -->
-        <div class="section-header"><span>Fuel Futures</span></div>
-        <div class="card-grid" id="grid-fuel"></div>
+            <div class="chart-card" id="chart-wti">
+                <div class="chart-header">
+                    <div class="chart-title">WTI Crude Oil Futures</div>
+                    <div class="chart-quote" id="quote-wti">--</div>
+                </div>
+                <div class="chart-body" id="chartbody-wti"></div>
+            </div>
+
+            <div class="chart-card" id="chart-brent">
+                <div class="chart-header">
+                    <div class="chart-title">Brent Crude Oil Futures</div>
+                    <div class="chart-quote" id="quote-brent">--</div>
+                </div>
+                <div class="chart-body" id="chartbody-brent"></div>
+            </div>
+        </div>
 
         <!-- Footer -->
         <div class="markets-footer">
             <span id="last-updated"></span>
-            &nbsp;&middot;&nbsp; Data from Twelve Data &amp; U.S. Energy Information Administration
+            &nbsp;&middot;&nbsp; Data from Yahoo Finance
         </div>
     </div>
 </div>

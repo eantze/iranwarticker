@@ -45,11 +45,9 @@ def api_casualties():
 @app.route('/api/prices')
 def api_prices():
     if DEMO_MODE:
-        from services.demo_data import get_demo_prices
-        return jsonify(get_demo_prices())
-    else:
-        from services.market_data import get_all_prices
-        return jsonify(get_all_prices())
+        return jsonify({"error": "Demo mode — no live data"})
+    from services.market_data import get_all_prices
+    return jsonify(get_all_prices())
 
 
 def _startup():

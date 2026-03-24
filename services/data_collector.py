@@ -1,4 +1,4 @@
-"""Background data collector that fetches market data and stores it in SQLite."""
+"""Background data collector that fetches market data from Yahoo Finance and EIA, stores in SQLite."""
 
 import datetime
 import logging
@@ -7,13 +7,10 @@ import time
 
 import requests
 
-from config import TWELVE_DATA_KEY, EIA_API_KEY
+from config import EIA_API_KEY
 from services.database import (
-    get_latest_history_date,
-    get_meta,
     save_history,
     save_quote,
-    set_meta,
     upload_to_gcs,
 )
 
@@ -21,17 +18,15 @@ logger = logging.getLogger(__name__)
 
 # --- Instrument definitions ---
 
-# Twelve Data: indices + crude oil futures (4 symbols)
-TD_INSTRUMENTS = {
-    "sp500": {"symbol": "SPY", "label": "S&P 500", "exchange": "INDEX: SPX"},
-    "dji": {"symbol": "DIA", "label": "Dow Jones Industrial", "exchange": "INDEX: DJI"},
-    "wti": {"symbol": "CL", "label": "WTI crude oil", "exchange": "NYMEX: CL"},
-    "brent": {"symbol": "BZ", "label": "Brent crude oil", "exchange": "NYMEX: BZ"},
+# Yahoo Finance symbols
+YF_INSTRUMENTS = {
+    "sp500": {"symbol": "^GSPC", "label": "S&P 500"},
+    "dji": {"symbol": "^DJI", "label": "Dow Jones Industrial"},
+    "wti": {"symbol": "CL=F", "label": "WTI Crude Oil Futures"},
+    "brent": {"symbol": "BZ=F", "label": "Brent Crude Oil Futures"},
 }
-TD_SYMBOLS = [info["symbol"] for info in TD_INSTRUMENTS.values()]
-TD_SYMBOLS_STR = ",".join(TD_SYMBOLS)
 
-# EIA: RBOB gasoline and natural gas only (WTI/Brent moved to Twelve Data)
+# EIA: RBOB gasoline and natural gas
 EIA_INSTRUMENTS = {
     "rbob": {
         "series": "EER_EPMRU_PF4_RGC_DPG",
@@ -50,30 +45,36 @@ EIA_INSTRUMENTS = {
 }
 
 # Intervals
-TD_QUOTE_INTERVAL = 60     # Twelve Data quotes every 1 minute
+YF_QUOTE_INTERVAL = 300    # Yahoo Finance quotes every 5 minutes
 EIA_QUOTE_INTERVAL = 300   # EIA quotes every 5 minutes
 HISTORY_INTERVAL = 3600    # History refresh every 1 hour
 GCS_SYNC_INTERVAL = 600    # GCS upload every 10 minutes
 
-BACKFILL_START = "2026-03-01"
+HISTORY_START = "2026-01-01"
 
 
 def start_collector():
-    """Start background data collection: backfill first, then polling threads."""
+    """Start background data collection threads."""
     thread = threading.Thread(target=_run_collector, daemon=True)
     thread.start()
     logger.info("Background data collector starting")
 
 
 def _run_collector():
-    """Backfill history, then start independent polling loops."""
-    # Phase 1: Backfill any missing Twelve Data history
+    """Fetch initial data, then start polling loops."""
+    # Phase 1: Fetch full history from Yahoo Finance
     try:
-        _backfill_td_history()
+        _fetch_yf_history()
     except Exception as e:
-        logger.error("Backfill error: %s", e)
+        logger.error("Initial YF history fetch error: %s", e)
 
-    # Phase 2: Initial EIA fetch
+    # Phase 2: Fetch current quotes
+    try:
+        _fetch_yf_quotes()
+    except Exception as e:
+        logger.error("Initial YF quote fetch error: %s", e)
+
+    # Phase 3: Initial EIA fetch
     try:
         _fetch_eia_latest()
         _fetch_eia_history()
@@ -86,162 +87,128 @@ def _run_collector():
     except Exception as e:
         logger.error("Initial GCS sync error: %s", e)
 
-    # Phase 3: Start independent polling threads
-    threading.Thread(target=_td_loop, daemon=True).start()
+    # Phase 4: Start independent polling threads
+    threading.Thread(target=_yf_loop, daemon=True).start()
     threading.Thread(target=_eia_loop, daemon=True).start()
     threading.Thread(target=_gcs_sync_loop, daemon=True).start()
     logger.info("All collector threads started")
 
 
-# --- Backfill Logic ---
+# --- Yahoo Finance ---
 
-def _backfill_td_history():
-    """On startup, fill any gaps in Twelve Data history from BACKFILL_START to today."""
-    if not TWELVE_DATA_KEY:
-        logger.warning("No TWELVE_DATA_KEY — skipping backfill")
-        return
+def _fetch_yf_history():
+    """Fetch daily history from Jan 1 2026 to present for all Yahoo Finance symbols using yfinance."""
+    try:
+        import yfinance as yf
 
-    today = datetime.date.today().isoformat()
+        symbols = [info["symbol"] for info in YF_INSTRUMENTS.values()]
+        logger.info("Fetching YF history for %s from %s", symbols, HISTORY_START)
 
-    for key, info in TD_INSTRUMENTS.items():
-        symbol = info["symbol"]
-        latest = get_latest_history_date(symbol)
+        data = yf.download(
+            tickers=symbols,
+            start=HISTORY_START,
+            interval="1d",
+            group_by="ticker",
+            auto_adjust=True,
+            progress=False,
+        )
 
-        if latest and latest >= today:
-            logger.info("History for %s is current (latest=%s), skipping backfill", symbol, latest)
-            continue
+        if data is None or data.empty:
+            logger.warning("No YF history data returned")
+            return
 
-        start = latest if latest and latest > BACKFILL_START else BACKFILL_START
-        logger.info("Backfilling %s from %s to %s", symbol, start, today)
+        for key, info in YF_INSTRUMENTS.items():
+            symbol = info["symbol"]
+            try:
+                if len(symbols) > 1:
+                    ticker_data = data[symbol]
+                else:
+                    ticker_data = data
 
-        try:
-            resp = requests.get(
-                "https://api.twelvedata.com/time_series",
-                params={
-                    "symbol": symbol,
-                    "interval": "1day",
-                    "start_date": start,
-                    "end_date": today,
-                    "outputsize": "60",
-                    "apikey": TWELVE_DATA_KEY,
-                },
-                timeout=15,
-            )
-            if resp.ok:
-                resp_json = resp.json()
-                if resp_json.get("status") == "error":
-                    logger.error("Backfill API error for %s: %s", symbol, resp_json.get("message"))
-                    continue
-                values = resp_json.get("values", [])
-                records = [
-                    {"date": item["datetime"], "close": float(item["close"])}
-                    for item in reversed(values)
-                ]
-                save_history(symbol, records)
-                logger.info("Backfilled %s: %d records", symbol, len(records))
-            else:
-                logger.error("Backfill HTTP error for %s: %s", symbol, resp.status_code)
-        except Exception as e:
-            logger.error("Backfill exception for %s: %s", symbol, e)
+                # Drop NaN rows
+                ticker_data = ticker_data.dropna(subset=["Close"])
 
-        time.sleep(10)  # Rate limit: stay well under 8 calls/min
+                records = []
+                for date_idx, row in ticker_data.iterrows():
+                    date_str = date_idx.strftime("%Y-%m-%d")
+                    records.append({
+                        "date": date_str,
+                        "close": float(row["Close"]),
+                        "open": float(row["Open"]) if "Open" in row else None,
+                        "high": float(row["High"]) if "High" in row else None,
+                        "low": float(row["Low"]) if "Low" in row else None,
+                        "volume": float(row["Volume"]) if "Volume" in row else None,
+                    })
+
+                # Save using the key name (sp500, dji, wti, brent) as the DB symbol
+                save_history(key, records)
+                logger.info("YF history for %s (%s): %d records", key, symbol, len(records))
+            except Exception as e:
+                logger.error("YF history parse error for %s: %s", symbol, e)
+
+    except Exception as e:
+        logger.error("YF history fetch exception: %s", e)
 
 
-# --- Twelve Data Polling Loop (every 60 seconds) ---
+def _fetch_yf_quotes():
+    """Fetch current quotes for all Yahoo Finance symbols."""
+    try:
+        import yfinance as yf
 
-def _td_loop():
-    """Fetch Twelve Data quotes every minute, history every hour."""
-    last_history = time.time()  # Skip immediate history since backfill just ran
+        for key, info in YF_INSTRUMENTS.items():
+            try:
+                ticker = yf.Ticker(info["symbol"])
+                fast = ticker.fast_info
+
+                price = fast.last_price
+                prev = fast.previous_close
+
+                if price is not None and prev is not None:
+                    change = round(price - prev, 2)
+                    change_pct = f"{(change / prev * 100) if prev else 0:+.2f}%"
+                    save_quote(key, price, change, change_pct)
+                    logger.debug("YF quote %s: %.2f", key, price)
+                else:
+                    logger.warning("No YF quote for %s", key)
+            except Exception as e:
+                logger.error("YF quote error for %s: %s", key, e)
+
+            time.sleep(2)  # Small delay between individual ticker calls
+
+        logger.info("Yahoo Finance quotes updated")
+
+    except Exception as e:
+        logger.error("YF quote fetch exception: %s", e)
+
+
+# --- Yahoo Finance Polling Loop ---
+
+def _yf_loop():
+    """Fetch Yahoo Finance quotes every 5 minutes, history every hour."""
+    last_history = time.time()  # Skip immediate since we just fetched
 
     while True:
-        try:
-            _fetch_td_quotes()
-        except Exception as e:
-            logger.error("TD quote fetch error: %s", e)
+        time.sleep(YF_QUOTE_INTERVAL)
 
-        # Refresh history every hour
+        try:
+            _fetch_yf_quotes()
+        except Exception as e:
+            logger.error("YF quote loop error: %s", e)
+
         now = time.time()
         if now - last_history >= HISTORY_INTERVAL:
             try:
-                _fetch_td_history()
+                _fetch_yf_history()
                 last_history = now
             except Exception as e:
-                logger.error("TD history fetch error: %s", e)
-
-        time.sleep(TD_QUOTE_INTERVAL)
+                logger.error("YF history loop error: %s", e)
 
 
-def _fetch_td_quotes():
-    """Batch fetch quotes for all 4 Twelve Data symbols (4 API credits)."""
-    if not TWELVE_DATA_KEY:
-        return
-
-    resp = requests.get(
-        "https://api.twelvedata.com/quote",
-        params={"symbol": TD_SYMBOLS_STR, "apikey": TWELVE_DATA_KEY},
-        timeout=15,
-    )
-    if not resp.ok:
-        logger.error("Twelve Data quote batch error: %s", resp.status_code)
-        return
-
-    data = resp.json()
-    for symbol in TD_SYMBOLS:
-        d = data.get(symbol, {})
-        if isinstance(d, dict) and "close" in d:
-            price = float(d["close"])
-            prev = float(d.get("previous_close", price))
-            change = round(price - prev, 2)
-            change_pct = f"{(change / prev * 100) if prev else 0:+.2f}%"
-            save_quote(symbol, price, change, change_pct)
-        else:
-            logger.warning("No quote data for %s: %s", symbol, d)
-
-    logger.info("Twelve Data quotes updated (SPY, DIA, CL, BZ)")
-
-
-def _fetch_td_history():
-    """Fetch daily history for all 4 Twelve Data symbols."""
-    if not TWELVE_DATA_KEY:
-        return
-
-    for symbol in TD_SYMBOLS:
-        try:
-            resp = requests.get(
-                "https://api.twelvedata.com/time_series",
-                params={
-                    "symbol": symbol,
-                    "interval": "1day",
-                    "outputsize": "30",
-                    "apikey": TWELVE_DATA_KEY,
-                },
-                timeout=10,
-            )
-            if resp.ok:
-                resp_json = resp.json()
-                if resp_json.get("status") == "error":
-                    logger.error("TD history API error for %s: %s", symbol, resp_json.get("message"))
-                    continue
-                values = resp_json.get("values", [])
-                records = [
-                    {"date": item["datetime"], "close": float(item["close"])}
-                    for item in reversed(values)
-                ]
-                save_history(symbol, records)
-                logger.info("TD history for %s: %d values", symbol, len(records))
-            else:
-                logger.error("TD history error for %s: %s", symbol, resp.status_code)
-        except Exception as e:
-            logger.error("TD history exception for %s: %s", symbol, e)
-
-        time.sleep(10)  # Rate limit: ~6 calls/min leaves headroom
-
-
-# --- EIA Polling Loop (every 5 minutes) ---
+# --- EIA Polling Loop ---
 
 def _eia_loop():
     """Fetch EIA data every 5 minutes, history every hour."""
-    last_history = time.time()  # Skip immediate since we fetched on startup
+    last_history = time.time()
 
     while True:
         time.sleep(EIA_QUOTE_INTERVAL)
@@ -300,7 +267,6 @@ def _fetch_eia_latest():
                     change_pct = "+0.00%"
 
                 save_quote(info["series"], price, change, change_pct)
-                logger.debug("EIA quote %s (%s): %.4f", key, info["series"], price)
             else:
                 logger.warning("No EIA data for %s", key)
         except Exception as e:
@@ -333,7 +299,7 @@ def _fetch_eia_history():
     logger.info("EIA energy history updated")
 
 
-# --- GCS Sync Loop (every 10 minutes) ---
+# --- GCS Sync Loop ---
 
 def _gcs_sync_loop():
     """Periodically upload the database to GCS."""
