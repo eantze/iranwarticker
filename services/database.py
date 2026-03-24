@@ -234,6 +234,16 @@ def get_all_sources():
     return grouped
 
 
+def get_latest_history_date(symbol):
+    """Return the most recent date in history for a symbol, or None."""
+    conn = _get_conn()
+    row = conn.execute(
+        "SELECT MAX(date) as max_date FROM history WHERE symbol = ?",
+        (symbol,),
+    ).fetchone()
+    return row["max_date"] if row and row["max_date"] else None
+
+
 def clear_sources():
     """Delete all sources (used when refreshing data)."""
     conn = _get_conn()

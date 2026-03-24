@@ -15,8 +15,8 @@ INSTRUMENTS = {
         "dji": {"db_key": "DIA", "label": "Dow Jones Industrial", "exchange": "INDEX: DJI"},
     },
     "crude": {
-        "wti": {"db_key": "RWTC", "label": "WTI crude oil", "exchange": "CLW00: NYMEX"},
-        "brent": {"db_key": "RBRTE", "label": "Brent crude oil", "exchange": "NYMEX: BZW00"},
+        "wti": {"db_key": "CL", "label": "WTI crude oil", "exchange": "NYMEX: CL"},
+        "brent": {"db_key": "BZ", "label": "Brent crude oil", "exchange": "NYMEX: BZ"},
     },
     "fuel": {
         "rbob": {"db_key": "EER_EPMRU_PF4_RGC_DPG", "label": "RBOB gasoline", "exchange": "NYMEX: RB"},
