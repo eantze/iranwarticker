@@ -111,6 +111,7 @@ def _fetch_yf_history():
             group_by="ticker",
             auto_adjust=True,
             progress=False,
+            timeout=30,
         )
 
         if data is None or data.empty:
@@ -158,6 +159,7 @@ def _fetch_yf_quotes():
         for key, info in YF_INSTRUMENTS.items():
             try:
                 ticker = yf.Ticker(info["symbol"])
+                ticker.session.timeout = 15
                 fast = ticker.fast_info
 
                 price = fast.last_price

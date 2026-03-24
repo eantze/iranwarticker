@@ -46,8 +46,12 @@ def api_casualties():
 def api_prices():
     if DEMO_MODE:
         return jsonify({"error": "Demo mode — no live data"})
-    from services.market_data import get_all_prices
-    return jsonify(get_all_prices())
+    try:
+        from services.market_data import get_all_prices
+        return jsonify(get_all_prices())
+    except Exception as e:
+        logging.getLogger(__name__).error("api/prices error: %s", e)
+        return jsonify({"error": str(e)}), 500
 
 
 def _startup():
