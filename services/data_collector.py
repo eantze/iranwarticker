@@ -36,14 +36,19 @@ def start_collector():
 
 
 def _run_collector():
-    """Fetch initial data, then start polling loops."""
-    # Phase 1: Fetch full history from Yahoo Finance
+    """Start polling loops immediately, fetch initial data in parallel."""
+    # Start polling loops right away so quotes begin updating
+    threading.Thread(target=_yf_loop, daemon=True).start()
+    threading.Thread(target=_gcs_sync_loop, daemon=True).start()
+    logger.info("All collector threads started")
+
+    # Fetch initial history (can be slow, but loops are already running)
     try:
         _fetch_yf_history()
     except Exception as e:
         logger.error("Initial YF history fetch error: %s", e)
 
-    # Phase 2: Fetch current quotes
+    # Fetch initial quotes
     try:
         _fetch_yf_quotes()
     except Exception as e:
@@ -54,11 +59,6 @@ def _run_collector():
         upload_to_gcs()
     except Exception as e:
         logger.error("Initial GCS sync error: %s", e)
-
-    # Phase 3: Start polling threads
-    threading.Thread(target=_yf_loop, daemon=True).start()
-    threading.Thread(target=_gcs_sync_loop, daemon=True).start()
-    logger.info("All collector threads started")
 
 
 # --- Yahoo Finance ---
@@ -153,11 +153,9 @@ def _fetch_yf_quotes():
 
 def _yf_loop():
     """Fetch Yahoo Finance quotes every 5 minutes, history every hour."""
-    last_history = time.time()  # Skip immediate since we just fetched
+    last_history = time.time()
 
     while True:
-        time.sleep(YF_QUOTE_INTERVAL)
-
         try:
             _fetch_yf_quotes()
         except Exception as e:
@@ -170,6 +168,8 @@ def _yf_loop():
                 last_history = now
             except Exception as e:
                 logger.error("YF history loop error: %s", e)
+
+        time.sleep(YF_QUOTE_INTERVAL)
 
 
 # --- GCS Sync Loop ---
