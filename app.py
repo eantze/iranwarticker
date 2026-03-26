@@ -55,23 +55,33 @@ def api_prices():
 
 
 def _startup():
-    """Initialize database and start background collector."""
+    """Initialize database and start background collector in a thread so the worker boots immediately."""
     if not DEMO_MODE:
-        from services.database import init_db, download_from_gcs
-        from services.data_collector import start_collector
-        from services.casualty_collector import start_casualty_collector
+        import threading
 
-        # Try to restore database from GCS first
-        download_from_gcs()
+        def _init():
+            try:
+                from services.database import init_db, download_from_gcs
+                from services.data_collector import start_collector
+                from services.casualty_collector import start_casualty_collector
 
-        # Initialize tables (no-op if they already exist)
-        init_db()
+                # Try to restore database from GCS first
+                download_from_gcs()
 
-        # Start background data collection
-        start_collector()
+                # Initialize tables (no-op if they already exist)
+                init_db()
 
-        # Start casualty data collection (Gemini)
-        start_casualty_collector()
+                # Start background data collection
+                start_collector()
+
+                # Start casualty data collection (Gemini)
+                start_casualty_collector()
+
+                logging.getLogger(__name__).info("Startup complete")
+            except Exception as e:
+                logging.getLogger(__name__).error("Startup error: %s", e)
+
+        threading.Thread(target=_init, daemon=True).start()
 
 
 # Run startup when the module loads (works with both flask run and gunicorn)
