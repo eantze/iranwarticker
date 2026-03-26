@@ -1,13 +1,9 @@
-"""Background data collector that fetches market data from Yahoo Finance and EIA, stores in SQLite."""
+"""Background data collector that fetches market data from Yahoo Finance, stores in SQLite."""
 
-import datetime
 import logging
 import threading
 import time
 
-import requests
-
-from config import EIA_API_KEY
 from services.database import (
     save_history,
     save_quote,
@@ -15,8 +11,6 @@ from services.database import (
 )
 
 logger = logging.getLogger(__name__)
-
-# --- Instrument definitions ---
 
 # Yahoo Finance symbols
 YF_INSTRUMENTS = {
@@ -26,27 +20,8 @@ YF_INSTRUMENTS = {
     "brent": {"symbol": "BZ=F", "label": "Brent Crude Oil Futures"},
 }
 
-# EIA: RBOB gasoline and natural gas
-EIA_INSTRUMENTS = {
-    "rbob": {
-        "series": "EER_EPMRU_PF4_RGC_DPG",
-        "endpoint": "petroleum/pri/spt",
-        "label": "RBOB gasoline",
-        "exchange": "NYMEX: RB",
-        "unit": "$/gallon",
-    },
-    "ng": {
-        "series": "RNGWHHD",
-        "endpoint": "natural-gas/pri/fut",
-        "label": "Henry Hub natural gas",
-        "exchange": "NYMEX: NG",
-        "unit": "$/MMBtu",
-    },
-}
-
 # Intervals
 YF_QUOTE_INTERVAL = 300    # Yahoo Finance quotes every 5 minutes
-EIA_QUOTE_INTERVAL = 300   # EIA quotes every 5 minutes
 HISTORY_INTERVAL = 3600    # History refresh every 1 hour
 GCS_SYNC_INTERVAL = 600    # GCS upload every 10 minutes
 
@@ -74,22 +49,14 @@ def _run_collector():
     except Exception as e:
         logger.error("Initial YF quote fetch error: %s", e)
 
-    # Phase 3: Initial EIA fetch
-    try:
-        _fetch_eia_latest()
-        _fetch_eia_history()
-    except Exception as e:
-        logger.error("Initial EIA fetch error: %s", e)
-
     # Initial GCS sync
     try:
         upload_to_gcs()
     except Exception as e:
         logger.error("Initial GCS sync error: %s", e)
 
-    # Phase 4: Start independent polling threads
+    # Phase 3: Start polling threads
     threading.Thread(target=_yf_loop, daemon=True).start()
-    threading.Thread(target=_eia_loop, daemon=True).start()
     threading.Thread(target=_gcs_sync_loop, daemon=True).start()
     logger.info("All collector threads started")
 
@@ -141,7 +108,6 @@ def _fetch_yf_history():
                         "volume": float(row["Volume"]) if "Volume" in row else None,
                     })
 
-                # Save using the key name (sp500, dji, wti, brent) as the DB symbol
                 save_history(key, records)
                 logger.info("YF history for %s (%s): %d records", key, symbol, len(records))
             except Exception as e:
@@ -204,101 +170,6 @@ def _yf_loop():
                 last_history = now
             except Exception as e:
                 logger.error("YF history loop error: %s", e)
-
-
-# --- EIA Polling Loop ---
-
-def _eia_loop():
-    """Fetch EIA data every 5 minutes, history every hour."""
-    last_history = time.time()
-
-    while True:
-        time.sleep(EIA_QUOTE_INTERVAL)
-
-        try:
-            _fetch_eia_latest()
-        except Exception as e:
-            logger.error("EIA quote fetch error: %s", e)
-
-        now = time.time()
-        if now - last_history >= HISTORY_INTERVAL:
-            try:
-                _fetch_eia_history()
-                last_history = now
-            except Exception as e:
-                logger.error("EIA history fetch error: %s", e)
-
-
-def _eia_fetch(endpoint, series, length=1):
-    """Generic EIA API v2 data fetch."""
-    url = f"https://api.eia.gov/v2/{endpoint}/data/"
-    params = {
-        "api_key": EIA_API_KEY,
-        "frequency": "daily",
-        "data[0]": "value",
-        "facets[series][]": series,
-        "sort[0][column]": "period",
-        "sort[0][direction]": "desc",
-        "length": str(length),
-    }
-    resp = requests.get(url, params=params, timeout=15)
-    if resp.ok:
-        return resp.json().get("response", {}).get("data", [])
-    else:
-        logger.error("EIA API error for %s: %s", series, resp.status_code)
-        return []
-
-
-def _fetch_eia_latest():
-    """Fetch latest prices for RBOB and Natural Gas from EIA."""
-    if not EIA_API_KEY:
-        logger.warning("No EIA_API_KEY — skipping EIA quote fetch")
-        return
-
-    for key, info in EIA_INSTRUMENTS.items():
-        try:
-            data = _eia_fetch(info["endpoint"], info["series"], length=2)
-            if data and len(data) >= 1:
-                price = float(data[0]["value"])
-                if len(data) >= 2:
-                    prev = float(data[1]["value"])
-                    change = round(price - prev, 4)
-                    change_pct = f"{(change / prev * 100) if prev else 0:+.2f}%"
-                else:
-                    change = 0
-                    change_pct = "+0.00%"
-
-                save_quote(info["series"], price, change, change_pct)
-            else:
-                logger.warning("No EIA data for %s", key)
-        except Exception as e:
-            logger.error("EIA quote fetch error for %s: %s", key, e)
-
-    logger.info("EIA energy quotes updated")
-
-
-def _fetch_eia_history():
-    """Fetch daily history for RBOB and Natural Gas from EIA."""
-    if not EIA_API_KEY:
-        return
-
-    for key, info in EIA_INSTRUMENTS.items():
-        try:
-            data = _eia_fetch(info["endpoint"], info["series"], length=60)
-            if data:
-                records = [
-                    {"date": item["period"], "close": float(item["value"])}
-                    for item in reversed(data)
-                    if item.get("value") is not None
-                ]
-                save_history(info["series"], records)
-                logger.info("EIA history for %s: %d values", key, len(records))
-            else:
-                logger.warning("No EIA history for %s", key)
-        except Exception as e:
-            logger.error("EIA history fetch error for %s: %s", key, e)
-
-    logger.info("EIA energy history updated")
 
 
 # --- GCS Sync Loop ---
