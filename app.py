@@ -34,12 +34,15 @@ def casualties():
 
 @app.route('/api/casualties')
 def api_casualties():
-    from services.database import get_all_casualties, get_casualty_totals, get_all_sources
-    return jsonify({
-        "totals": get_casualty_totals(),
-        "daily": get_all_casualties(),
-        "sources": get_all_sources(),
-    })
+    try:
+        from services.database import get_all_casualties, get_casualty_totals, get_all_sources
+        return jsonify({
+            "totals": get_casualty_totals(),
+            "daily": get_all_casualties(),
+            "sources": get_all_sources(),
+        })
+    except Exception:
+        return jsonify({"totals": {}, "daily": {}, "sources": {}})
 
 
 @app.route('/api/prices')
@@ -50,8 +53,14 @@ def api_prices():
         from services.market_data import get_all_prices
         return jsonify(get_all_prices())
     except Exception as e:
-        logging.getLogger(__name__).error("api/prices error: %s", e)
-        return jsonify({"error": str(e)}), 500
+        # Return empty structure during startup before tables are ready
+        return jsonify({
+            "sp500": {"label": "S&P 500", "price": None, "change": None, "change_pct": None, "history": []},
+            "dji": {"label": "Dow Jones Industrial", "price": None, "change": None, "change_pct": None, "history": []},
+            "wti": {"label": "WTI Crude Oil Futures", "price": None, "change": None, "change_pct": None, "history": []},
+            "brent": {"label": "Brent Crude Oil Futures", "price": None, "change": None, "change_pct": None, "history": []},
+            "updated_at": None,
+        })
 
 
 def _startup():
