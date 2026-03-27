@@ -82,3 +82,57 @@ body {
     color: #ffffff;
     background: rgba(255, 255, 255, 0.1);
 }
+
+/* Hamburger toggle — hidden on desktop */
+.nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.4rem;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nav-toggle span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 1px;
+    transition: background 0.2s;
+}
+
+/* Mobile nav */
+@media (max-width: 768px) {
+    .nav-toggle {
+        display: flex;
+    }
+
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 52px;
+        left: 0;
+        right: 0;
+        background: rgba(10, 10, 26, 0.97);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        flex-direction: column;
+        padding: 0.5rem 0;
+    }
+
+    .nav-links.open {
+        display: flex;
+    }
+
+    .nav-link {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0;
+        font-size: 0.9rem;
+    }
+
+    .nav-link:hover {
+        background: rgba(255, 255, 255, 0.04);
+    }
+}

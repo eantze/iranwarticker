@@ -1,6 +1,9 @@
 <nav class="top-nav">
     <div class="nav-inner">
         <a href="/" class="nav-brand"></a>
+        <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
         <div class="nav-links">
             <a href="/" class="nav-link {{ 'active' if active_page == 'home' }}">Oil and Gas</a>
             <a href="/markets" class="nav-link {{ 'active' if active_page == 'markets' }}">Markets</a>
