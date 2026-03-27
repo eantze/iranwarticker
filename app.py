@@ -80,14 +80,11 @@ def _startup():
 
         def _init():
             try:
-                from services.database import init_db, download_from_gcs
+                from services.database import init_db
                 from services.data_collector import start_collector
                 from services.casualty_collector import start_casualty_collector
 
-                # Try to restore database from GCS first
-                download_from_gcs()
-
-                # Initialize tables (no-op if they already exist)
+                # Initialize tables (creates data/ dir and tables if needed)
                 init_db()
 
                 # Start background data collection

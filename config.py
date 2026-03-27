@@ -6,4 +6,3 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 DEMO_MODE = os.getenv("DEMO_MODE", "true").lower() == "true"
 PORT = int(os.getenv("PORT", 5000))
-GCS_BUCKET = os.getenv("GCS_BUCKET", "")  # e.g. "oil-gas-ticker-data"

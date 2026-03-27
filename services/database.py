@@ -1,15 +1,16 @@
-"""SQLite database for storing market data, with Google Cloud Storage sync."""
+"""SQLite database for storing market data."""
 
 import json
 import logging
 import os
 import sqlite3
-import tempfile
 import threading
 
 logger = logging.getLogger(__name__)
 
-DB_PATH = os.path.join(tempfile.gettempdir(), "market_data.db")
+# Persistent path: ./data/market_data.db relative to project root
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(_PROJECT_ROOT, "data", "market_data.db")
 _local = threading.local()
 
 
@@ -24,6 +25,7 @@ def _get_conn():
 
 def init_db():
     """Create tables if they don't exist."""
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = _get_conn()
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS quotes (
@@ -249,67 +251,3 @@ def clear_sources():
     conn = _get_conn()
     conn.execute("DELETE FROM sources")
     conn.commit()
-
-
-# --- Google Cloud Storage Sync ---
-
-_gcs_client = None
-
-
-def _get_gcs_bucket():
-    """Get the GCS bucket for syncing, or None if not configured."""
-    from config import GCS_BUCKET
-    if not GCS_BUCKET:
-        return None
-
-    global _gcs_client
-    try:
-        if _gcs_client is None:
-            from google.cloud import storage
-            _gcs_client = storage.Client()
-        return _gcs_client.bucket(GCS_BUCKET)
-    except Exception as e:
-        logger.error("Failed to connect to GCS bucket '%s': %s", GCS_BUCKET, e)
-        return None
-
-
-def upload_to_gcs():
-    """Upload the SQLite database to Google Cloud Storage."""
-    bucket = _get_gcs_bucket()
-    if not bucket:
-        return False
-
-    try:
-        # Checkpoint the WAL so all data is in the main DB file
-        conn = _get_conn()
-        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-
-        blob = bucket.blob("market_data.db")
-        blob.upload_from_filename(DB_PATH)
-        logger.info("Database uploaded to GCS")
-        return True
-    except Exception as e:
-        logger.error("Failed to upload database to GCS: %s", e)
-        return False
-
-
-def download_from_gcs():
-    """Download the SQLite database from Google Cloud Storage."""
-    bucket = _get_gcs_bucket()
-    if not bucket:
-        return False
-
-    try:
-        blob = bucket.blob("market_data.db")
-        if blob.exists():
-            blob.download_to_filename(DB_PATH)
-            logger.info("Database downloaded from GCS")
-            # Reset thread-local connections so they pick up the new file
-            _local.conn = None
-            return True
-        else:
-            logger.info("No database found in GCS — starting fresh")
-            return False
-    except Exception as e:
-        logger.error("Failed to download database from GCS: %s", e)
-        return False

@@ -7,7 +7,6 @@ import time
 from services.database import (
     save_history,
     save_quote,
-    upload_to_gcs,
 )
 
 logger = logging.getLogger(__name__)
@@ -23,7 +22,6 @@ YF_INSTRUMENTS = {
 # Intervals
 YF_QUOTE_INTERVAL = 300    # Yahoo Finance quotes every 5 minutes
 HISTORY_INTERVAL = 3600    # History refresh every 1 hour
-GCS_SYNC_INTERVAL = 600    # GCS upload every 10 minutes
 
 HISTORY_START = "2026-01-01"
 
@@ -37,12 +35,10 @@ def start_collector():
 
 def _run_collector():
     """Start polling loops immediately, fetch initial data in parallel."""
-    # Start polling loops right away so quotes begin updating
     threading.Thread(target=_yf_loop, daemon=True).start()
-    threading.Thread(target=_gcs_sync_loop, daemon=True).start()
-    logger.info("All collector threads started")
+    logger.info("Collector threads started")
 
-    # Fetch initial history (can be slow, but loops are already running)
+    # Fetch initial history (can be slow, but loop is already running)
     try:
         _fetch_yf_history()
     except Exception as e:
@@ -53,12 +49,6 @@ def _run_collector():
         _fetch_yf_quotes()
     except Exception as e:
         logger.error("Initial YF quote fetch error: %s", e)
-
-    # Initial GCS sync
-    try:
-        upload_to_gcs()
-    except Exception as e:
-        logger.error("Initial GCS sync error: %s", e)
 
 
 # --- Yahoo Finance ---
@@ -170,15 +160,3 @@ def _yf_loop():
                 logger.error("YF history loop error: %s", e)
 
         time.sleep(YF_QUOTE_INTERVAL)
-
-
-# --- GCS Sync Loop ---
-
-def _gcs_sync_loop():
-    """Periodically upload the database to GCS."""
-    while True:
-        time.sleep(GCS_SYNC_INTERVAL)
-        try:
-            upload_to_gcs()
-        except Exception as e:
-            logger.error("GCS sync error: %s", e)

@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import requests
 
 from config import GEMINI_API_KEY
-from services.database import save_casualty, save_source, get_meta, set_meta, upload_to_gcs
+from services.database import save_casualty, save_source, get_meta, set_meta
 
 logger = logging.getLogger(__name__)
 
