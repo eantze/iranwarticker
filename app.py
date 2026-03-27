@@ -17,6 +17,11 @@ def home():
     return render_template('index.html', active_page='home')
 
 
+@app.route('/natural-gas')
+def natural_gas():
+    return render_template('natural_gas.html', active_page='natural_gas')
+
+
 @app.route('/markets')
 def markets():
     return render_template('markets.html', active_page='markets')

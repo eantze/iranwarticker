@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Global Oil Production Reduction Ticker{% endblock %}
+{% block title %}Global Natural Gas Production Reduction Ticker{% endblock %}
 
 {% block head %}
 <style>
@@ -286,7 +286,7 @@
 
 {% block content %}
 <div class="ticker-container">
-    <div class="ticker-header" id="ticker-header">Since March 1, 2026 the Strait of Hormuz has been closed resulting in a 20% reduction in global oil production</div>
+    <div class="ticker-header" id="ticker-header">Since March 1, 2026 the Strait of Hormuz has been closed resulting in a 20% reduction in global natural gas production</div>
 
     <div class="assumptions-row">
         <div class="assumptions-customize" onclick="openSettings()">
@@ -296,13 +296,13 @@
 
     <div class="counter-group">
         <div class="ticker-label">Total Impact</div>
-        <div class="glow-number" id="percent">0.000000%</div>
-        <div class="ticker-label">Yearly Global Oil Production Reduced</div>
+        <div class="glow-number" id="gas-percent">0.000000%</div>
+        <div class="ticker-label">Yearly Global Natural Gas Production Reduced</div>
     </div>
 
     <div class="counter-group">
-        <div class="glow-number" id="barrels">0</div>
-        <div class="ticker-label">Yearly Global Barrels of Oil Not Produced</div>
+        <div class="glow-number" id="gas-tonnes">0</div>
+        <div class="ticker-label">Yearly Metric Tonnes of Natural Gas Not Produced</div>
     </div>
 
     <div class="pre-epoch-note" id="pre-epoch-note">
@@ -316,8 +316,8 @@
         <div class="assumptions-content" id="assumptions">
             <ul>
                 <li id="a-closure">March 1st the Strait of Hormuz was closed due to the war with Iran.</li>
-                <li id="a-reduction">Each day the strait remains closed the world is producing 20% less oil.</li>
-                <li id="a-barrels">20% of the world's oil production for one year is roughly 7.5 billion barrels.</li>
+                <li id="a-gas-reduction">20% of the world's natural gas production moves through the Strait of Hormuz.</li>
+                <li id="a-gas-tonnes">500 million metric tonnes of natural gas is produced globally per year.</li>
             </ul>
         </div>
     </div>
@@ -333,15 +333,15 @@
         </div>
 
         <div class="setting-group">
-            <label class="setting-label" for="input-production">Yearly Global Oil Production (Billion Barrels)</label>
-            <input class="setting-input" id="input-production" type="number" step="0.1" min="0.1">
-            <div class="setting-hint">Default: 36.5 billion barrels (~100M barrels/day)</div>
+            <label class="setting-label" for="input-gas-production">Yearly Global Natural Gas Production (Million Metric Tonnes)</label>
+            <input class="setting-input" id="input-gas-production" type="number" step="1" min="1">
+            <div class="setting-hint">Default: 500 million metric tonnes/year</div>
         </div>
 
         <div class="setting-group">
-            <label class="setting-label" for="input-reduction">Production Reduction (%)</label>
-            <input class="setting-input" id="input-reduction" type="number" step="0.1" min="0.1" max="100">
-            <div class="setting-hint">Default: 20% (share of oil through Strait of Hormuz)</div>
+            <label class="setting-label" for="input-gas-reduction">Natural Gas Production Reduction (%)</label>
+            <input class="setting-input" id="input-gas-reduction" type="number" step="0.1" min="0.1" max="100">
+            <div class="setting-hint">Default: 20% (share of gas through Strait of Hormuz)</div>
         </div>
 
         <div class="setting-group">
@@ -363,23 +363,24 @@
     const MS_PER_DAY = 86400000;
 
     // Defaults
-    const DEFAULT_PRODUCTION = 36.5;  // billion barrels/year
-    const DEFAULT_REDUCTION = 20;     // percent
+    const DEFAULT_GAS_PRODUCTION = 500;  // million metric tonnes/year
+    const DEFAULT_GAS_REDUCTION = 20;    // percent
     const DEFAULT_DATE = '2026-03-01';
+
     // Active values (can be changed by user)
-    let yearlyProduction = DEFAULT_PRODUCTION;
-    let reductionPercent = DEFAULT_REDUCTION;
+    let gasProduction = DEFAULT_GAS_PRODUCTION;
+    let gasReduction = DEFAULT_GAS_REDUCTION;
     let epochDate = DEFAULT_DATE;
     let epoch = new Date(DEFAULT_DATE + 'T00:00:00Z').getTime();
 
     // Load saved settings from localStorage
     function loadSettings() {
         try {
-            const saved = localStorage.getItem('ticker_settings');
+            const saved = localStorage.getItem('gas_ticker_settings');
             if (saved) {
                 const s = JSON.parse(saved);
-                if (s.production) yearlyProduction = s.production;
-                if (s.reduction) reductionPercent = s.reduction;
+                if (s.gasProduction) gasProduction = s.gasProduction;
+                if (s.gasReduction) gasReduction = s.gasReduction;
                 if (s.date) {
                     epochDate = s.date;
                     epoch = new Date(s.date + 'T00:00:00Z').getTime();
@@ -399,26 +400,26 @@
     }
 
     function saveSettings() {
-        localStorage.setItem('ticker_settings', JSON.stringify({
-            production: yearlyProduction,
-            reduction: reductionPercent,
+        localStorage.setItem('gas_ticker_settings', JSON.stringify({
+            gasProduction: gasProduction,
+            gasReduction: gasReduction,
             date: epochDate,
         }));
         localStorage.setItem('shared_strait_date', epochDate);
     }
 
     // Derived values
-    function getBarrelsPerDay() {
-        return (yearlyProduction * 1e9 / 365) * (reductionPercent / 100);
+    function getGasTonnesPerDay() {
+        return (gasProduction * 1e6 / 365) * (gasReduction / 100);
     }
 
-    function getDaysPerPercent() {
-        return 365 / reductionPercent;
+    function getGasDaysPerPercent() {
+        return 365 / gasReduction;
     }
 
     // DOM
-    const percentEl = document.getElementById('percent');
-    const barrelsEl = document.getElementById('barrels');
+    const gasPercentEl = document.getElementById('gas-percent');
+    const gasTonnesEl = document.getElementById('gas-tonnes');
     const noteEl = document.getElementById('pre-epoch-note');
     const headerEl = document.getElementById('ticker-header');
 
@@ -427,7 +428,7 @@
         const months = ['January','February','March','April','May','June',
                         'July','August','September','October','November','December'];
         const dateStr = months[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
-        headerEl.textContent = 'Since ' + dateStr + ' the Strait of Hormuz has been closed resulting in a ' + reductionPercent + '% reduction in global oil production';
+        headerEl.textContent = 'Since ' + dateStr + ' the Strait of Hormuz has been closed resulting in a ' + gasReduction + '% reduction in global natural gas production';
     }
 
     function updateAssumptionsText() {
@@ -435,15 +436,14 @@
         const months = ['January','February','March','April','May','June',
                         'July','August','September','October','November','December'];
         const dateStr = months[d.getUTCMonth()] + ' ' + d.getUTCDate();
-        const pct = reductionPercent;
-        const reducedBbl = (yearlyProduction * (pct / 100)).toFixed(1);
 
         document.getElementById('a-closure').textContent =
             dateStr + ' the Strait of Hormuz was closed due to the war with Iran.';
-        document.getElementById('a-reduction').textContent =
-            'Each day the strait remains closed the world is producing ' + pct + '% less oil.';
-        document.getElementById('a-barrels').textContent =
-            pct + '% of the world\'s oil production for one year is roughly ' + reducedBbl + ' billion barrels.';
+        document.getElementById('a-gas-reduction').textContent =
+            gasReduction + '% of the world\'s natural gas production moves through the Strait of Hormuz.';
+        const reducedGas = (gasProduction * (gasReduction / 100)).toFixed(0);
+        document.getElementById('a-gas-tonnes').textContent =
+            gasProduction + ' million metric tonnes of natural gas is produced globally per year (' + reducedGas + 'M tonnes reduced).';
     }
 
     function update() {
@@ -451,8 +451,8 @@
         const elapsed = now - epoch;
 
         if (elapsed < 0) {
-            percentEl.textContent = '0.000000%';
-            barrelsEl.textContent = '0';
+            gasPercentEl.textContent = '0.000000%';
+            gasTonnesEl.textContent = '0';
             noteEl.style.display = 'block';
             return;
         }
@@ -460,17 +460,17 @@
         noteEl.style.display = 'none';
 
         const daysElapsed = elapsed / MS_PER_DAY;
-        const percentReduced = daysElapsed / getDaysPerPercent();
-        const barrelsNotProduced = Math.floor(daysElapsed * getBarrelsPerDay());
+        const gasPercentReduced = daysElapsed / getGasDaysPerPercent();
+        const gasTonnesNotProduced = Math.floor(daysElapsed * getGasTonnesPerDay());
 
-        percentEl.textContent = percentReduced.toFixed(6) + '%';
-        barrelsEl.textContent = barrelsNotProduced.toLocaleString('en-US');
+        gasPercentEl.textContent = gasPercentReduced.toFixed(6) + '%';
+        gasTonnesEl.textContent = gasTonnesNotProduced.toLocaleString('en-US');
     }
 
     // Settings panel
     function openSettings() {
-        document.getElementById('input-production').value = yearlyProduction;
-        document.getElementById('input-reduction').value = reductionPercent;
+        document.getElementById('input-gas-production').value = gasProduction;
+        document.getElementById('input-gas-reduction').value = gasReduction;
         document.getElementById('input-date').value = epochDate;
         document.getElementById('settings-overlay').classList.add('open');
     }
@@ -480,14 +480,14 @@
     }
 
     function applySettings() {
-        const prod = parseFloat(document.getElementById('input-production').value);
-        const red = parseFloat(document.getElementById('input-reduction').value);
+        const gasProd = parseFloat(document.getElementById('input-gas-production').value);
+        const gasRed = parseFloat(document.getElementById('input-gas-reduction').value);
         const date = document.getElementById('input-date').value;
 
-        if (!prod || prod <= 0 || !red || red <= 0 || red > 100 || !date) return;
+        if (!gasProd || gasProd <= 0 || !gasRed || gasRed <= 0 || gasRed > 100 || !date) return;
 
-        yearlyProduction = prod;
-        reductionPercent = red;
+        gasProduction = gasProd;
+        gasReduction = gasRed;
         epochDate = date;
         epoch = new Date(date + 'T00:00:00Z').getTime();
 
@@ -498,16 +498,16 @@
     }
 
     function resetSettings() {
-        yearlyProduction = DEFAULT_PRODUCTION;
-        reductionPercent = DEFAULT_REDUCTION;
+        gasProduction = DEFAULT_GAS_PRODUCTION;
+        gasReduction = DEFAULT_GAS_REDUCTION;
         epochDate = DEFAULT_DATE;
         epoch = new Date(DEFAULT_DATE + 'T00:00:00Z').getTime();
 
-        document.getElementById('input-production').value = DEFAULT_PRODUCTION;
-        document.getElementById('input-reduction').value = DEFAULT_REDUCTION;
+        document.getElementById('input-gas-production').value = DEFAULT_GAS_PRODUCTION;
+        document.getElementById('input-gas-reduction').value = DEFAULT_GAS_REDUCTION;
         document.getElementById('input-date').value = DEFAULT_DATE;
 
-        localStorage.removeItem('ticker_settings');
+        localStorage.removeItem('gas_ticker_settings');
         updateAssumptionsText();
         updateHeader();
         closeSettings();
