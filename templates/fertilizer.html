@@ -343,6 +343,25 @@
 <div class="ticker-container">
     <div class="ticker-header" id="ticker-header">Since March 1, 2026 the Strait of Hormuz has been closed, disrupting global fertilizer supply chains</div>
 
+    <div class="assumptions-section">
+        <div class="assumptions-row">
+            <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
+                &#9662; assumptions
+            </div>
+            <div class="assumptions-customize" onclick="openSettings()">
+                &#9998; customize
+            </div>
+        </div>
+        <div class="assumptions-content" id="assumptions">
+            <ul>
+                <li id="a-closure">March 1st the Strait of Hormuz was closed due to the war with Iran.</li>
+                <li id="a-urea">~32.5% of global urea production (~190M tonnes/year) transits the strait, primarily from Qatar, Saudi Arabia, UAE, and Iran.</li>
+                <li id="a-phos">~20% of global phosphate production (~237M tonnes/year) originates from the region, driven by Saudi Arabia.</li>
+                <li id="a-sulfur">~45% of the world's traded sulfur (~75M tonnes/year) passes through the strait, a key input for phosphate fertilizers.</li>
+            </ul>
+        </div>
+    </div>
+
     <!-- Urea Section -->
     <div class="section-title">Urea (Nitrogen-Based)</div>
 
@@ -388,25 +407,6 @@
 
     <div class="pre-epoch-note" id="pre-epoch-note">
         Ticker has not started yet
-    </div>
-
-    <div class="assumptions-section">
-        <div class="assumptions-row">
-            <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
-                &#9662; assumptions
-            </div>
-            <div class="assumptions-customize" onclick="openSettings()">
-                &#9998; customize
-            </div>
-        </div>
-        <div class="assumptions-content" id="assumptions">
-            <ul>
-                <li id="a-closure">March 1st the Strait of Hormuz was closed due to the war with Iran.</li>
-                <li id="a-urea">~32.5% of global urea production (~190M tonnes/year) transits the strait, primarily from Qatar, Saudi Arabia, UAE, and Iran.</li>
-                <li id="a-phos">~20% of global phosphate production (~237M tonnes/year) originates from the region, driven by Saudi Arabia.</li>
-                <li id="a-sulfur">~45% of the world's traded sulfur (~75M tonnes/year) passes through the strait, a key input for phosphate fertilizers.</li>
-            </ul>
-        </div>
     </div>
 </div>
 

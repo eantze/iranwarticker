@@ -366,6 +366,27 @@
         Total estimated cost of the Strait of Hormuz closure
     </div>
 
+    <div class="assumptions-section">
+        <div class="assumptions-row">
+            <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
+                &#9662; assumptions
+            </div>
+            <div class="assumptions-customize" onclick="openSettings()">
+                &#9998; customize
+            </div>
+        </div>
+        <div class="assumptions-content" id="assumptions">
+            <ul>
+                <li>Oil: <span id="a-oil-prod">36.5</span> billion barrels/year, <span id="a-oil-red">20</span>% transits the strait.</li>
+                <li>Natural Gas: <span id="a-gas-prod">500</span>M metric tonnes/year, <span id="a-gas-red">20</span>% transits the strait.</li>
+                <li>CO2: <span id="a-co2">430</span> kg of CO2 produced per barrel of oil.</li>
+                <li>Urea: <span id="a-urea-prod">190</span>M tonnes/year, <span id="a-urea-red">32.5</span>% transits the strait.</li>
+                <li>Phosphates: <span id="a-phos-prod">237</span>M tonnes/year, <span id="a-phos-red">20</span>% from the region.</li>
+                <li>Sulfur: <span id="a-sulfur-prod">75</span>M tonnes/year, <span id="a-sulfur-red">45</span>% transits the strait.</li>
+            </ul>
+        </div>
+    </div>
+
     <!-- Date picker -->
     <div class="date-control">
         <div class="date-label">Strait of Hormuz Traffic Returns to Normal</div>
@@ -430,27 +451,6 @@
         </div>
     </div>
 
-    <!-- Assumptions -->
-    <div class="assumptions-section">
-        <div class="assumptions-row">
-            <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
-                &#9662; assumptions
-            </div>
-            <div class="assumptions-customize" onclick="openSettings()">
-                &#9998; customize
-            </div>
-        </div>
-        <div class="assumptions-content" id="assumptions">
-            <ul>
-                <li>Oil: <span id="a-oil-prod">36.5</span> billion barrels/year, <span id="a-oil-red">20</span>% transits the strait.</li>
-                <li>Natural Gas: <span id="a-gas-prod">500</span>M metric tonnes/year, <span id="a-gas-red">20</span>% transits the strait.</li>
-                <li>CO2: <span id="a-co2">430</span> kg of CO2 produced per barrel of oil.</li>
-                <li>Urea: <span id="a-urea-prod">190</span>M tonnes/year, <span id="a-urea-red">32.5</span>% transits the strait.</li>
-                <li>Phosphates: <span id="a-phos-prod">237</span>M tonnes/year, <span id="a-phos-red">20</span>% from the region.</li>
-                <li>Sulfur: <span id="a-sulfur-prod">75</span>M tonnes/year, <span id="a-sulfur-red">45</span>% transits the strait.</li>
-            </ul>
-        </div>
-    </div>
 </div>
 
 <!-- Settings overlay -->
