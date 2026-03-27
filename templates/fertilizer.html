@@ -1,0 +1,684 @@
+{% extends "base.html" %}
+
+{% block title %}Fertilizer Supply Reduction Ticker{% endblock %}
+
+{% block head %}
+<style>
+    body {
+        background: #000000;
+    }
+
+    .ticker-container {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3rem;
+        padding: 0 1.5rem;
+        min-height: 100vh;
+        justify-content: center;
+        position: relative;
+    }
+
+    .ticker-header {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.95rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        max-width: 700px;
+        line-height: 1.6;
+    }
+
+    .section-divider {
+        width: 120px;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .section-title {
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'Courier New', monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+    }
+
+    .counter-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .glow-number {
+        color: #ffffff;
+        text-shadow:
+            0 0 10px rgba(0, 255, 200, 0.8),
+            0 0 20px rgba(0, 255, 200, 0.6),
+            0 0 40px rgba(0, 255, 200, 0.4),
+            0 0 80px rgba(0, 255, 200, 0.2);
+        font-size: 4.5rem;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        letter-spacing: 0.05em;
+    }
+
+    .glow-number.urea {
+        text-shadow:
+            0 0 10px rgba(255, 200, 50, 0.8),
+            0 0 20px rgba(255, 200, 50, 0.6),
+            0 0 40px rgba(255, 200, 50, 0.4),
+            0 0 80px rgba(255, 200, 50, 0.2);
+    }
+
+    .glow-number.phosphate {
+        text-shadow:
+            0 0 10px rgba(100, 200, 255, 0.8),
+            0 0 20px rgba(100, 200, 255, 0.6),
+            0 0 40px rgba(100, 200, 255, 0.4),
+            0 0 80px rgba(100, 200, 255, 0.2);
+    }
+
+    .glow-number.sulfur {
+        text-shadow:
+            0 0 10px rgba(255, 150, 50, 0.8),
+            0 0 20px rgba(255, 150, 50, 0.6),
+            0 0 40px rgba(255, 150, 50, 0.4),
+            0 0 80px rgba(255, 150, 50, 0.2);
+    }
+
+    .ticker-label {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 1rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .pre-epoch-note {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        font-style: italic;
+        display: none;
+    }
+
+    /* Assumptions row */
+    .assumptions-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+
+    .assumptions-customize {
+        color: rgba(0, 255, 200, 0.6);
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s;
+    }
+
+    .assumptions-customize:hover {
+        color: rgba(0, 255, 200, 1);
+    }
+
+    /* Settings panel */
+    .settings-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .settings-overlay.open {
+        display: flex;
+    }
+
+    .settings-panel {
+        background: #111;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 440px;
+        font-family: 'Courier New', monospace;
+        color: #fff;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .settings-title {
+        font-size: 0.85rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .settings-close {
+        cursor: pointer;
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.5);
+        transition: color 0.2s;
+        background: none;
+        border: none;
+        font-family: inherit;
+    }
+
+    .settings-close:hover {
+        color: #fff;
+    }
+
+    .settings-section-label {
+        font-size: 0.6rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: rgba(255, 200, 50, 0.7);
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 1rem;
+    }
+
+    .settings-section-label.phosphate { color: rgba(100, 200, 255, 0.7); }
+    .settings-section-label.sulfur { color: rgba(255, 150, 50, 0.7); }
+    .settings-section-label.general { color: rgba(0, 255, 200, 0.7); }
+
+    .setting-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .setting-label {
+        display: block;
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 0.5rem;
+    }
+
+    .setting-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        padding: 0.6rem 0.8rem;
+        color: #fff;
+        font-family: 'Courier New', monospace;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    .setting-input:focus {
+        border-color: rgba(0, 255, 200, 0.5);
+    }
+
+    .setting-hint {
+        font-size: 0.55rem;
+        color: rgba(255, 255, 255, 0.35);
+        margin-top: 0.3rem;
+        letter-spacing: 0.05em;
+    }
+
+    .settings-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn-apply {
+        flex: 1;
+        padding: 0.6rem;
+        border: 1px solid rgba(0, 255, 200, 0.4);
+        border-radius: 6px;
+        background: rgba(0, 255, 200, 0.1);
+        color: rgba(0, 255, 200, 0.9);
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-apply:hover {
+        background: rgba(0, 255, 200, 0.2);
+    }
+
+    .btn-reset {
+        flex: 1;
+        padding: 0.6rem;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.6);
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-reset:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Assumptions */
+    .assumptions-toggle {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s;
+    }
+
+    .assumptions-toggle:hover {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .assumptions-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease, opacity 0.4s ease;
+        opacity: 0;
+    }
+
+    .assumptions-content.open {
+        max-height: 500px;
+        opacity: 1;
+    }
+
+    .assumptions-content ul {
+        list-style: none;
+        padding: 0.8rem 2rem 0 2rem;
+        text-align: center;
+        max-width: 600px;
+    }
+
+    .assumptions-content li {
+        color: #ffffff;
+        font-size: 0.65rem;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.05em;
+        line-height: 1.8;
+    }
+
+    @media (max-width: 600px) {
+        .glow-number {
+            font-size: 2.5rem;
+        }
+
+        .ticker-header {
+            font-size: 1rem;
+        }
+
+        .ticker-label {
+            font-size: 0.85rem;
+        }
+
+        .settings-panel {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ticker-container">
+    <div class="ticker-header" id="ticker-header">Since March 1, 2026 the Strait of Hormuz has been closed, disrupting global fertilizer supply chains</div>
+
+    <!-- Urea Section -->
+    <div class="section-title">Urea (Nitrogen-Based)</div>
+
+    <div class="counter-group">
+        <div class="glow-number urea" id="urea-percent">0.000000%</div>
+        <div class="ticker-label">Yearly Global Urea Exports Reduced</div>
+    </div>
+
+    <div class="counter-group">
+        <div class="glow-number urea" id="urea-tonnes">0</div>
+        <div class="ticker-label">Metric Tonnes of Urea Not Exported</div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Phosphates Section -->
+    <div class="section-title">Phosphates</div>
+
+    <div class="counter-group">
+        <div class="glow-number phosphate" id="phos-percent">0.000000%</div>
+        <div class="ticker-label">Yearly Global Phosphate Exports Reduced</div>
+    </div>
+
+    <div class="counter-group">
+        <div class="glow-number phosphate" id="phos-tonnes">0</div>
+        <div class="ticker-label">Metric Tonnes of Phosphate Not Exported</div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Sulfur Section -->
+    <div class="section-title">Sulfur</div>
+
+    <div class="counter-group">
+        <div class="glow-number sulfur" id="sulfur-percent">0.000000%</div>
+        <div class="ticker-label">Yearly Global Sulfur Exports Reduced</div>
+    </div>
+
+    <div class="counter-group">
+        <div class="glow-number sulfur" id="sulfur-tonnes">0</div>
+        <div class="ticker-label">Metric Tonnes of Sulfur Not Exported</div>
+    </div>
+
+    <div class="pre-epoch-note" id="pre-epoch-note">
+        Ticker has not started yet
+    </div>
+
+    <div class="assumptions-section">
+        <div class="assumptions-row">
+            <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
+                &#9662; assumptions
+            </div>
+            <div class="assumptions-customize" onclick="openSettings()">
+                &#9998; customize
+            </div>
+        </div>
+        <div class="assumptions-content" id="assumptions">
+            <ul>
+                <li id="a-closure">March 1st the Strait of Hormuz was closed due to the war with Iran.</li>
+                <li id="a-urea">~32.5% of global urea production (~190M tonnes/year) transits the strait, primarily from Qatar, Saudi Arabia, UAE, and Iran.</li>
+                <li id="a-phos">~20% of global phosphate production (~237M tonnes/year) originates from the region, driven by Saudi Arabia.</li>
+                <li id="a-sulfur">~45% of the world's traded sulfur (~75M tonnes/year) passes through the strait, a key input for phosphate fertilizers.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Settings overlay -->
+<div class="settings-overlay" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+    <div class="settings-panel">
+        <div class="settings-title">
+            <span>Adjust Assumptions</span>
+            <button class="settings-close" onclick="closeSettings()">&times;</button>
+        </div>
+
+        <div class="settings-section-label general">General</div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-date">Date Strait Closed</label>
+            <input class="setting-input" id="input-date" type="date">
+            <div class="setting-hint">Default: 2026-03-01</div>
+        </div>
+
+        <div class="settings-section-label">Urea</div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-urea-production">Global Urea Exports (Million Tonnes/Year)</label>
+            <input class="setting-input" id="input-urea-production" type="number" step="0.1" min="0.1">
+            <div class="setting-hint">Default: 190 million tonnes</div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-urea-reduction">Urea Export Reduction (%)</label>
+            <input class="setting-input" id="input-urea-reduction" type="number" step="0.1" min="0.1" max="100">
+            <div class="setting-hint">Default: 32.5% (share transiting Strait of Hormuz)</div>
+        </div>
+
+        <div class="settings-section-label phosphate">Phosphates</div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-phos-production">Global Phosphate Exports (Million Tonnes/Year)</label>
+            <input class="setting-input" id="input-phos-production" type="number" step="0.1" min="0.1">
+            <div class="setting-hint">Default: 237 million tonnes</div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-phos-reduction">Phosphate Export Reduction (%)</label>
+            <input class="setting-input" id="input-phos-reduction" type="number" step="0.1" min="0.1" max="100">
+            <div class="setting-hint">Default: 20% (share from region)</div>
+        </div>
+
+        <div class="settings-section-label sulfur">Sulfur</div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-sulfur-production">Global Sulfur Exports (Million Tonnes/Year)</label>
+            <input class="setting-input" id="input-sulfur-production" type="number" step="0.1" min="0.1">
+            <div class="setting-hint">Default: 75 million tonnes</div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-sulfur-reduction">Sulfur Export Reduction (%)</label>
+            <input class="setting-input" id="input-sulfur-reduction" type="number" step="0.1" min="0.1" max="100">
+            <div class="setting-hint">Default: 45% (share transiting Strait of Hormuz)</div>
+        </div>
+
+        <div class="settings-actions">
+            <button class="btn-apply" onclick="applySettings()">Apply</button>
+            <button class="btn-reset" onclick="resetSettings()">Reset Defaults</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const MS_PER_DAY = 86400000;
+
+    // Defaults
+    const DEFAULT_DATE = '2026-03-01';
+    const DEFAULT_UREA_PRODUCTION = 190;    // million tonnes/year
+    const DEFAULT_UREA_REDUCTION = 32.5;    // percent
+    const DEFAULT_PHOS_PRODUCTION = 237;    // million tonnes/year
+    const DEFAULT_PHOS_REDUCTION = 20;      // percent
+    const DEFAULT_SULFUR_PRODUCTION = 75;   // million tonnes/year
+    const DEFAULT_SULFUR_REDUCTION = 45;    // percent
+
+    // Active values
+    let epochDate = DEFAULT_DATE;
+    let epoch = new Date(DEFAULT_DATE + 'T00:00:00Z').getTime();
+    let ureaProduction = DEFAULT_UREA_PRODUCTION;
+    let ureaReduction = DEFAULT_UREA_REDUCTION;
+    let phosProduction = DEFAULT_PHOS_PRODUCTION;
+    let phosReduction = DEFAULT_PHOS_REDUCTION;
+    let sulfurProduction = DEFAULT_SULFUR_PRODUCTION;
+    let sulfurReduction = DEFAULT_SULFUR_REDUCTION;
+
+    // Load saved settings
+    function loadSettings() {
+        try {
+            const saved = localStorage.getItem('fertilizer_settings');
+            if (saved) {
+                const s = JSON.parse(saved);
+                if (s.date) { epochDate = s.date; epoch = new Date(s.date + 'T00:00:00Z').getTime(); }
+                if (s.ureaProduction) ureaProduction = s.ureaProduction;
+                if (s.ureaReduction) ureaReduction = s.ureaReduction;
+                if (s.phosProduction) phosProduction = s.phosProduction;
+                if (s.phosReduction) phosReduction = s.phosReduction;
+                if (s.sulfurProduction) sulfurProduction = s.sulfurProduction;
+                if (s.sulfurReduction) sulfurReduction = s.sulfurReduction;
+            }
+        } catch (e) {}
+        // Check shared strait date
+        try {
+            const shared = localStorage.getItem('shared_strait_date');
+            if (shared) { epochDate = shared; epoch = new Date(shared + 'T00:00:00Z').getTime(); }
+        } catch (e) {}
+        updateAssumptionsText();
+        updateHeader();
+    }
+
+    function saveSettings() {
+        localStorage.setItem('fertilizer_settings', JSON.stringify({
+            date: epochDate,
+            ureaProduction, ureaReduction,
+            phosProduction, phosReduction,
+            sulfurProduction, sulfurReduction,
+        }));
+        localStorage.setItem('shared_strait_date', epochDate);
+    }
+
+    // Derived values — tonnes per day for each commodity
+    function tonnesPerDay(productionM, reductionPct) {
+        return (productionM * 1e6 / 365) * (reductionPct / 100);
+    }
+
+    function daysPerPercent(reductionPct) {
+        return 365 / reductionPct;
+    }
+
+    // DOM elements
+    const ureaPercentEl = document.getElementById('urea-percent');
+    const ureaTonnesEl = document.getElementById('urea-tonnes');
+    const phosPercentEl = document.getElementById('phos-percent');
+    const phosTonnesEl = document.getElementById('phos-tonnes');
+    const sulfurPercentEl = document.getElementById('sulfur-percent');
+    const sulfurTonnesEl = document.getElementById('sulfur-tonnes');
+    const noteEl = document.getElementById('pre-epoch-note');
+    const headerEl = document.getElementById('ticker-header');
+
+    function updateHeader() {
+        const d = new Date(epochDate + 'T00:00:00Z');
+        const months = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+        const dateStr = months[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+        headerEl.textContent = 'Since ' + dateStr + ' the Strait of Hormuz has been closed, disrupting global fertilizer supply chains';
+    }
+
+    function updateAssumptionsText() {
+        const d = new Date(epochDate + 'T00:00:00Z');
+        const months = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+        const dateStr = months[d.getUTCMonth()] + ' ' + d.getUTCDate();
+
+        document.getElementById('a-closure').textContent =
+            dateStr + ' the Strait of Hormuz was closed due to the war with Iran.';
+        document.getElementById('a-urea').textContent =
+            '~' + ureaReduction + '% of global urea exports (~' + ureaProduction + 'M tonnes/year) transit the strait, primarily from Qatar, Saudi Arabia, UAE, and Iran.';
+        document.getElementById('a-phos').textContent =
+            '~' + phosReduction + '% of global phosphate fertilizer trade (~' + phosProduction + 'M tonnes/year) originates from the region, driven by Saudi Arabia.';
+        document.getElementById('a-sulfur').textContent =
+            '~' + sulfurReduction + '% of the world\'s traded sulfur (~' + sulfurProduction + 'M tonnes/year) passes through the strait, a key input for phosphate fertilizers.';
+    }
+
+    function update() {
+        const now = Date.now();
+        const elapsed = now - epoch;
+
+        if (elapsed < 0) {
+            ureaPercentEl.textContent = '0.000000%';
+            ureaTonnesEl.textContent = '0';
+            phosPercentEl.textContent = '0.000000%';
+            phosTonnesEl.textContent = '0';
+            sulfurPercentEl.textContent = '0.000000%';
+            sulfurTonnesEl.textContent = '0';
+            noteEl.style.display = 'block';
+            return;
+        }
+
+        noteEl.style.display = 'none';
+        const days = elapsed / MS_PER_DAY;
+
+        const ureaPct = days / daysPerPercent(ureaReduction);
+        const ureaTons = Math.floor(days * tonnesPerDay(ureaProduction, ureaReduction));
+        ureaPercentEl.textContent = ureaPct.toFixed(6) + '%';
+        ureaTonnesEl.textContent = ureaTons.toLocaleString('en-US');
+
+        const phosPct = days / daysPerPercent(phosReduction);
+        const phosTons = Math.floor(days * tonnesPerDay(phosProduction, phosReduction));
+        phosPercentEl.textContent = phosPct.toFixed(6) + '%';
+        phosTonnesEl.textContent = phosTons.toLocaleString('en-US');
+
+        const sulfurPct = days / daysPerPercent(sulfurReduction);
+        const sulfurTons = Math.floor(days * tonnesPerDay(sulfurProduction, sulfurReduction));
+        sulfurPercentEl.textContent = sulfurPct.toFixed(6) + '%';
+        sulfurTonnesEl.textContent = sulfurTons.toLocaleString('en-US');
+    }
+
+    // Settings panel
+    function openSettings() {
+        document.getElementById('input-date').value = epochDate;
+        document.getElementById('input-urea-production').value = ureaProduction;
+        document.getElementById('input-urea-reduction').value = ureaReduction;
+        document.getElementById('input-phos-production').value = phosProduction;
+        document.getElementById('input-phos-reduction').value = phosReduction;
+        document.getElementById('input-sulfur-production').value = sulfurProduction;
+        document.getElementById('input-sulfur-reduction').value = sulfurReduction;
+        document.getElementById('settings-overlay').classList.add('open');
+    }
+
+    function closeSettings() {
+        document.getElementById('settings-overlay').classList.remove('open');
+    }
+
+    function applySettings() {
+        const date = document.getElementById('input-date').value;
+        const up = parseFloat(document.getElementById('input-urea-production').value);
+        const ur = parseFloat(document.getElementById('input-urea-reduction').value);
+        const pp = parseFloat(document.getElementById('input-phos-production').value);
+        const pr = parseFloat(document.getElementById('input-phos-reduction').value);
+        const sp = parseFloat(document.getElementById('input-sulfur-production').value);
+        const sr = parseFloat(document.getElementById('input-sulfur-reduction').value);
+
+        if (!date) return;
+        if (!up || up <= 0 || !ur || ur <= 0 || ur > 100) return;
+        if (!pp || pp <= 0 || !pr || pr <= 0 || pr > 100) return;
+        if (!sp || sp <= 0 || !sr || sr <= 0 || sr > 100) return;
+
+        epochDate = date;
+        epoch = new Date(date + 'T00:00:00Z').getTime();
+        ureaProduction = up; ureaReduction = ur;
+        phosProduction = pp; phosReduction = pr;
+        sulfurProduction = sp; sulfurReduction = sr;
+
+        saveSettings();
+        updateAssumptionsText();
+        updateHeader();
+        closeSettings();
+    }
+
+    function resetSettings() {
+        epochDate = DEFAULT_DATE;
+        epoch = new Date(DEFAULT_DATE + 'T00:00:00Z').getTime();
+        ureaProduction = DEFAULT_UREA_PRODUCTION; ureaReduction = DEFAULT_UREA_REDUCTION;
+        phosProduction = DEFAULT_PHOS_PRODUCTION; phosReduction = DEFAULT_PHOS_REDUCTION;
+        sulfurProduction = DEFAULT_SULFUR_PRODUCTION; sulfurReduction = DEFAULT_SULFUR_REDUCTION;
+
+        document.getElementById('input-date').value = DEFAULT_DATE;
+        document.getElementById('input-urea-production').value = DEFAULT_UREA_PRODUCTION;
+        document.getElementById('input-urea-reduction').value = DEFAULT_UREA_REDUCTION;
+        document.getElementById('input-phos-production').value = DEFAULT_PHOS_PRODUCTION;
+        document.getElementById('input-phos-reduction').value = DEFAULT_PHOS_REDUCTION;
+        document.getElementById('input-sulfur-production').value = DEFAULT_SULFUR_PRODUCTION;
+        document.getElementById('input-sulfur-reduction').value = DEFAULT_SULFUR_REDUCTION;
+
+        localStorage.removeItem('fertilizer_settings');
+        updateAssumptionsText();
+        updateHeader();
+        closeSettings();
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeSettings();
+    });
+
+    loadSettings();
+    update();
+    setInterval(update, 80);
+</script>
+{% endblock %}

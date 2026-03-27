@@ -1,0 +1,718 @@
+{% extends "base.html" %}
+
+{% block title %}Total Cost Estimate{% endblock %}
+
+{% block head %}
+<style>
+    body {
+        background: #000000;
+    }
+
+    .cost-container {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2.5rem;
+        padding: 2rem 1.5rem;
+        min-height: 100vh;
+        position: relative;
+    }
+
+    .cost-header {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.95rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        max-width: 750px;
+        line-height: 1.6;
+    }
+
+    .date-control {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .date-label {
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'Courier New', monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+    }
+
+    .date-input {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 0.7rem 1.2rem;
+        color: #fff;
+        font-family: 'Courier New', monospace;
+        font-size: 1.1rem;
+        outline: none;
+        transition: border-color 0.2s;
+        color-scheme: dark;
+        text-align: center;
+    }
+
+    .date-input:focus {
+        border-color: rgba(0, 255, 200, 0.5);
+    }
+
+    .duration-label {
+        color: rgba(0, 255, 200, 0.7);
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        letter-spacing: 0.1em;
+    }
+
+    .section-divider {
+        width: 200px;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .section-title {
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+    }
+
+    .cost-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem 3rem;
+        max-width: 700px;
+    }
+
+    .cost-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .cost-value {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        font-size: 2.2rem;
+        letter-spacing: 0.03em;
+    }
+
+    .cost-value.oil {
+        text-shadow:
+            0 0 10px rgba(0, 255, 200, 0.8),
+            0 0 20px rgba(0, 255, 200, 0.5);
+    }
+
+    .cost-value.env {
+        text-shadow:
+            0 0 10px rgba(100, 220, 100, 0.8),
+            0 0 20px rgba(100, 220, 100, 0.5);
+    }
+
+    .cost-value.urea {
+        text-shadow:
+            0 0 10px rgba(255, 200, 50, 0.8),
+            0 0 20px rgba(255, 200, 50, 0.5);
+    }
+
+    .cost-value.phosphate {
+        text-shadow:
+            0 0 10px rgba(100, 200, 255, 0.8),
+            0 0 20px rgba(100, 200, 255, 0.5);
+    }
+
+    .cost-value.sulfur {
+        text-shadow:
+            0 0 10px rgba(255, 150, 50, 0.8),
+            0 0 20px rgba(255, 150, 50, 0.5);
+    }
+
+    .cost-label {
+        color: rgba(255, 255, 255, 0.6);
+        font-family: 'Courier New', monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        max-width: 280px;
+    }
+
+    /* Full-width item for single column entries */
+    .cost-item.full {
+        grid-column: 1 / -1;
+    }
+
+    /* Assumptions */
+    .assumptions-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+
+    .assumptions-customize {
+        color: rgba(0, 255, 200, 0.6);
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s;
+    }
+
+    .assumptions-customize:hover {
+        color: rgba(0, 255, 200, 1);
+    }
+
+    .assumptions-toggle {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s;
+    }
+
+    .assumptions-toggle:hover {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .assumptions-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease, opacity 0.4s ease;
+        opacity: 0;
+    }
+
+    .assumptions-content.open {
+        max-height: 600px;
+        opacity: 1;
+    }
+
+    .assumptions-content ul {
+        list-style: none;
+        padding: 0.8rem 2rem 0 2rem;
+        text-align: center;
+        max-width: 650px;
+    }
+
+    .assumptions-content li {
+        color: #ffffff;
+        font-size: 0.6rem;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.05em;
+        line-height: 1.8;
+    }
+
+    /* Settings overlay */
+    .settings-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .settings-overlay.open {
+        display: flex;
+    }
+
+    .settings-panel {
+        background: #111;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 480px;
+        font-family: 'Courier New', monospace;
+        color: #fff;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .settings-title {
+        font-size: 0.85rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .settings-close {
+        cursor: pointer;
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.5);
+        transition: color 0.2s;
+        background: none;
+        border: none;
+        font-family: inherit;
+    }
+
+    .settings-close:hover { color: #fff; }
+
+    .settings-section-label {
+        font-size: 0.6rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: rgba(0, 255, 200, 0.7);
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 1rem;
+    }
+
+    .settings-section-label.env { color: rgba(100, 220, 100, 0.7); }
+    .settings-section-label.fert { color: rgba(255, 200, 50, 0.7); }
+
+    .setting-group { margin-bottom: 1.2rem; }
+
+    .setting-label {
+        display: block;
+        font-size: 0.6rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 0.4rem;
+    }
+
+    .setting-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        padding: 0.5rem 0.7rem;
+        color: #fff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    .setting-input:focus { border-color: rgba(0, 255, 200, 0.5); }
+
+    .setting-hint {
+        font-size: 0.5rem;
+        color: rgba(255, 255, 255, 0.3);
+        margin-top: 0.2rem;
+        letter-spacing: 0.05em;
+    }
+
+    .settings-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn-apply {
+        flex: 1;
+        padding: 0.6rem;
+        border: 1px solid rgba(0, 255, 200, 0.4);
+        border-radius: 6px;
+        background: rgba(0, 255, 200, 0.1);
+        color: rgba(0, 255, 200, 0.9);
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-apply:hover { background: rgba(0, 255, 200, 0.2); }
+
+    .btn-reset {
+        flex: 1;
+        padding: 0.6rem;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.6);
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-reset:hover { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.9); }
+
+    @media (max-width: 600px) {
+        .cost-value { font-size: 1.5rem; }
+        .cost-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+        .cost-header { font-size: 0.85rem; }
+        .settings-panel { padding: 1.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cost-container">
+    <div class="cost-header" id="cost-header">
+        Total estimated cost of the Strait of Hormuz closure
+    </div>
+
+    <!-- Date picker -->
+    <div class="date-control">
+        <div class="date-label">Strait of Hormuz Traffic Returns to Normal</div>
+        <input class="date-input" id="input-end-date" type="date" onchange="recalculate()">
+        <div class="duration-label" id="duration-label">-- days of closure</div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Oil & Gas -->
+    <div class="section-title">Oil &amp; Gas</div>
+    <div class="cost-grid">
+        <div class="cost-item">
+            <div class="cost-value oil" id="val-oil-pct">--</div>
+            <div class="cost-label">Yearly Oil Production Reduced</div>
+        </div>
+        <div class="cost-item">
+            <div class="cost-value oil" id="val-oil-barrels">--</div>
+            <div class="cost-label">Barrels of Oil Not Produced</div>
+        </div>
+        <div class="cost-item">
+            <div class="cost-value oil" id="val-gas-pct">--</div>
+            <div class="cost-label">Yearly Natural Gas Production Reduced</div>
+        </div>
+        <div class="cost-item">
+            <div class="cost-value oil" id="val-gas-tonnes">--</div>
+            <div class="cost-label">Metric Tonnes of Natural Gas Not Produced</div>
+        </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Environmental -->
+    <div class="section-title">Environmental Impact</div>
+    <div class="cost-grid">
+        <div class="cost-item">
+            <div class="cost-value env" id="val-env-barrels">--</div>
+            <div class="cost-label">Barrels of Oil Not Produced</div>
+        </div>
+        <div class="cost-item">
+            <div class="cost-value env" id="val-env-co2">--</div>
+            <div class="cost-label">Kg of CO2 Not Produced</div>
+        </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Fertilizer -->
+    <div class="section-title">Fertilizer</div>
+    <div class="cost-grid">
+        <div class="cost-item">
+            <div class="cost-value urea" id="val-urea">--</div>
+            <div class="cost-label">Metric Tonnes of Urea Not Produced</div>
+        </div>
+        <div class="cost-item">
+            <div class="cost-value phosphate" id="val-phos">--</div>
+            <div class="cost-label">Metric Tonnes of Phosphate Not Produced</div>
+        </div>
+        <div class="cost-item full">
+            <div class="cost-value sulfur" id="val-sulfur">--</div>
+            <div class="cost-label">Metric Tonnes of Sulfur Not Produced</div>
+        </div>
+    </div>
+
+    <!-- Assumptions -->
+    <div class="assumptions-section">
+        <div class="assumptions-row">
+            <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
+                &#9662; assumptions
+            </div>
+            <div class="assumptions-customize" onclick="openSettings()">
+                &#9998; customize
+            </div>
+        </div>
+        <div class="assumptions-content" id="assumptions">
+            <ul>
+                <li>Oil: <span id="a-oil-prod">36.5</span> billion barrels/year, <span id="a-oil-red">20</span>% transits the strait.</li>
+                <li>Natural Gas: <span id="a-gas-prod">500</span>M metric tonnes/year, <span id="a-gas-red">20</span>% transits the strait.</li>
+                <li>CO2: <span id="a-co2">430</span> kg of CO2 produced per barrel of oil.</li>
+                <li>Urea: <span id="a-urea-prod">190</span>M tonnes/year, <span id="a-urea-red">32.5</span>% transits the strait.</li>
+                <li>Phosphates: <span id="a-phos-prod">237</span>M tonnes/year, <span id="a-phos-red">20</span>% from the region.</li>
+                <li>Sulfur: <span id="a-sulfur-prod">75</span>M tonnes/year, <span id="a-sulfur-red">45</span>% transits the strait.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Settings overlay -->
+<div class="settings-overlay" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+    <div class="settings-panel">
+        <div class="settings-title">
+            <span>Adjust Assumptions</span>
+            <button class="settings-close" onclick="closeSettings()">&times;</button>
+        </div>
+
+        <div class="settings-section-label">Oil &amp; Gas</div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="s-oil-prod">Yearly Oil Production (Billion Barrels)</label>
+            <input class="setting-input" id="s-oil-prod" type="number" step="0.1" min="0.1">
+            <div class="setting-hint">Default: 36.5</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-oil-red">Oil Production Reduction (%)</label>
+            <input class="setting-input" id="s-oil-red" type="number" step="0.1" min="0.1" max="100">
+            <div class="setting-hint">Default: 20%</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-gas-prod">Yearly Natural Gas Production (Million Metric Tonnes)</label>
+            <input class="setting-input" id="s-gas-prod" type="number" step="1" min="1">
+            <div class="setting-hint">Default: 500</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-gas-red">Natural Gas Reduction (%)</label>
+            <input class="setting-input" id="s-gas-red" type="number" step="0.1" min="0.1" max="100">
+            <div class="setting-hint">Default: 20%</div>
+        </div>
+
+        <div class="settings-section-label env">Environmental</div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="s-co2">CO2 per Barrel of Oil (kg)</label>
+            <input class="setting-input" id="s-co2" type="number" step="1" min="1">
+            <div class="setting-hint">Default: 430 kg</div>
+        </div>
+
+        <div class="settings-section-label fert">Fertilizer</div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="s-urea-prod">Global Urea Production (Million Tonnes/Year)</label>
+            <input class="setting-input" id="s-urea-prod" type="number" step="0.1" min="0.1">
+            <div class="setting-hint">Default: 190</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-urea-red">Urea Reduction (%)</label>
+            <input class="setting-input" id="s-urea-red" type="number" step="0.1" min="0.1" max="100">
+            <div class="setting-hint">Default: 32.5%</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-phos-prod">Global Phosphate Production (Million Tonnes/Year)</label>
+            <input class="setting-input" id="s-phos-prod" type="number" step="0.1" min="0.1">
+            <div class="setting-hint">Default: 237</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-phos-red">Phosphate Reduction (%)</label>
+            <input class="setting-input" id="s-phos-red" type="number" step="0.1" min="0.1" max="100">
+            <div class="setting-hint">Default: 20%</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-sulfur-prod">Global Sulfur Production (Million Tonnes/Year)</label>
+            <input class="setting-input" id="s-sulfur-prod" type="number" step="0.1" min="0.1">
+            <div class="setting-hint">Default: 75</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-sulfur-red">Sulfur Reduction (%)</label>
+            <input class="setting-input" id="s-sulfur-red" type="number" step="0.1" min="0.1" max="100">
+            <div class="setting-hint">Default: 45%</div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="s-start-date">Date Strait Closed</label>
+            <input class="setting-input" id="s-start-date" type="date">
+            <div class="setting-hint">Default: 2026-03-01</div>
+        </div>
+
+        <div class="settings-actions">
+            <button class="btn-apply" onclick="applySettings()">Apply</button>
+            <button class="btn-reset" onclick="resetSettings()">Reset Defaults</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const MS_PER_DAY = 86400000;
+
+    // Defaults
+    const D = {
+        startDate: '2026-03-01',
+        endDate: '2026-09-01',  // 6 months out as default
+        oilProd: 36.5,       // billion barrels/year
+        oilRed: 20,          // percent
+        gasProd: 500,        // million metric tonnes/year
+        gasRed: 20,          // percent
+        co2: 430,            // kg CO2 per barrel
+        ureaProd: 190,       // million tonnes/year
+        ureaRed: 32.5,       // percent
+        phosProd: 237,       // million tonnes/year
+        phosRed: 20,         // percent
+        sulfurProd: 75,      // million tonnes/year
+        sulfurRed: 45,       // percent
+    };
+
+    // Active values
+    let v = { ...D };
+
+    function loadSettings() {
+        try {
+            const saved = localStorage.getItem('total_cost_settings');
+            if (saved) Object.assign(v, JSON.parse(saved));
+        } catch (e) {}
+        // Shared strait date
+        try {
+            const shared = localStorage.getItem('shared_strait_date');
+            if (shared) v.startDate = shared;
+        } catch (e) {}
+        document.getElementById('input-end-date').value = v.endDate;
+        updateAssumptions();
+    }
+
+    function saveSettings() {
+        localStorage.setItem('total_cost_settings', JSON.stringify(v));
+        localStorage.setItem('shared_strait_date', v.startDate);
+    }
+
+    function fmt(n) {
+        if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+        if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+        if (n >= 1e3) return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        return n.toLocaleString('en-US');
+    }
+
+    function updateAssumptions() {
+        document.getElementById('a-oil-prod').textContent = v.oilProd;
+        document.getElementById('a-oil-red').textContent = v.oilRed;
+        document.getElementById('a-gas-prod').textContent = v.gasProd;
+        document.getElementById('a-gas-red').textContent = v.gasRed;
+        document.getElementById('a-co2').textContent = v.co2;
+        document.getElementById('a-urea-prod').textContent = v.ureaProd;
+        document.getElementById('a-urea-red').textContent = v.ureaRed;
+        document.getElementById('a-phos-prod').textContent = v.phosProd;
+        document.getElementById('a-phos-red').textContent = v.phosRed;
+        document.getElementById('a-sulfur-prod').textContent = v.sulfurProd;
+        document.getElementById('a-sulfur-red').textContent = v.sulfurRed;
+    }
+
+    function recalculate() {
+        const endDateVal = document.getElementById('input-end-date').value;
+        if (!endDateVal) return;
+
+        v.endDate = endDateVal;
+        saveSettings();
+
+        const start = new Date(v.startDate + 'T00:00:00Z').getTime();
+        const end = new Date(v.endDate + 'T00:00:00Z').getTime();
+
+        if (end <= start) {
+            document.getElementById('duration-label').textContent = 'End date must be after strait closure date';
+            return;
+        }
+
+        const days = (end - start) / MS_PER_DAY;
+        document.getElementById('duration-label').textContent = Math.round(days) + ' days of closure';
+
+        // Update header
+        const startD = new Date(v.startDate + 'T00:00:00Z');
+        const endD = new Date(v.endDate + 'T00:00:00Z');
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const startStr = months[startD.getUTCMonth()] + ' ' + startD.getUTCDate() + ', ' + startD.getUTCFullYear();
+        const endStr = months[endD.getUTCMonth()] + ' ' + endD.getUTCDate() + ', ' + endD.getUTCFullYear();
+        document.getElementById('cost-header').textContent =
+            'Total estimated cost of the Strait of Hormuz closure from ' + startStr + ' to ' + endStr;
+
+        // Oil & Gas
+        const oilBarrelsPerDay = (v.oilProd * 1e9 / 365) * (v.oilRed / 100);
+        const oilBarrels = Math.floor(days * oilBarrelsPerDay);
+        const oilPct = days / (365 / v.oilRed);
+        document.getElementById('val-oil-pct').textContent = oilPct.toFixed(4) + '%';
+        document.getElementById('val-oil-barrels').textContent = fmt(oilBarrels);
+
+        const gasTonnesPerDay = (v.gasProd * 1e6 / 365) * (v.gasRed / 100);
+        const gasTonnes = Math.floor(days * gasTonnesPerDay);
+        const gasPct = days / (365 / v.gasRed);
+        document.getElementById('val-gas-pct').textContent = gasPct.toFixed(4) + '%';
+        document.getElementById('val-gas-tonnes').textContent = fmt(gasTonnes);
+
+        // Environmental (uses same oil barrels + CO2 conversion)
+        document.getElementById('val-env-barrels').textContent = fmt(oilBarrels);
+        const co2Kg = oilBarrels * v.co2;
+        document.getElementById('val-env-co2').textContent = fmt(co2Kg);
+
+        // Fertilizer
+        const ureaTonnes = Math.floor(days * (v.ureaProd * 1e6 / 365) * (v.ureaRed / 100));
+        const phosTonnes = Math.floor(days * (v.phosProd * 1e6 / 365) * (v.phosRed / 100));
+        const sulfurTonnes = Math.floor(days * (v.sulfurProd * 1e6 / 365) * (v.sulfurRed / 100));
+        document.getElementById('val-urea').textContent = fmt(ureaTonnes);
+        document.getElementById('val-phos').textContent = fmt(phosTonnes);
+        document.getElementById('val-sulfur').textContent = fmt(sulfurTonnes);
+    }
+
+    // Settings panel
+    function openSettings() {
+        document.getElementById('s-oil-prod').value = v.oilProd;
+        document.getElementById('s-oil-red').value = v.oilRed;
+        document.getElementById('s-gas-prod').value = v.gasProd;
+        document.getElementById('s-gas-red').value = v.gasRed;
+        document.getElementById('s-co2').value = v.co2;
+        document.getElementById('s-urea-prod').value = v.ureaProd;
+        document.getElementById('s-urea-red').value = v.ureaRed;
+        document.getElementById('s-phos-prod').value = v.phosProd;
+        document.getElementById('s-phos-red').value = v.phosRed;
+        document.getElementById('s-sulfur-prod').value = v.sulfurProd;
+        document.getElementById('s-sulfur-red').value = v.sulfurRed;
+        document.getElementById('s-start-date').value = v.startDate;
+        document.getElementById('settings-overlay').classList.add('open');
+    }
+
+    function closeSettings() {
+        document.getElementById('settings-overlay').classList.remove('open');
+    }
+
+    function applySettings() {
+        v.oilProd = parseFloat(document.getElementById('s-oil-prod').value) || D.oilProd;
+        v.oilRed = parseFloat(document.getElementById('s-oil-red').value) || D.oilRed;
+        v.gasProd = parseFloat(document.getElementById('s-gas-prod').value) || D.gasProd;
+        v.gasRed = parseFloat(document.getElementById('s-gas-red').value) || D.gasRed;
+        v.co2 = parseFloat(document.getElementById('s-co2').value) || D.co2;
+        v.ureaProd = parseFloat(document.getElementById('s-urea-prod').value) || D.ureaProd;
+        v.ureaRed = parseFloat(document.getElementById('s-urea-red').value) || D.ureaRed;
+        v.phosProd = parseFloat(document.getElementById('s-phos-prod').value) || D.phosProd;
+        v.phosRed = parseFloat(document.getElementById('s-phos-red').value) || D.phosRed;
+        v.sulfurProd = parseFloat(document.getElementById('s-sulfur-prod').value) || D.sulfurProd;
+        v.sulfurRed = parseFloat(document.getElementById('s-sulfur-red').value) || D.sulfurRed;
+        const newStart = document.getElementById('s-start-date').value;
+        if (newStart) v.startDate = newStart;
+
+        saveSettings();
+        updateAssumptions();
+        closeSettings();
+        recalculate();
+    }
+
+    function resetSettings() {
+        Object.assign(v, { ...D });
+        document.getElementById('input-end-date').value = D.endDate;
+        localStorage.removeItem('total_cost_settings');
+        updateAssumptions();
+        closeSettings();
+        recalculate();
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeSettings();
+    });
+
+    loadSettings();
+    recalculate();
+</script>
+{% endblock %}

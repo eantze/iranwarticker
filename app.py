@@ -27,6 +27,16 @@ def environmental_impact():
     return render_template('environmental.html', active_page='environmental')
 
 
+@app.route('/total-cost')
+def total_cost():
+    return render_template('total_cost.html', active_page='total_cost')
+
+
+@app.route('/fertilizer')
+def fertilizer():
+    return render_template('fertilizer.html', active_page='fertilizer')
+
+
 @app.route('/casualties')
 def casualties():
     return render_template('casualties.html', active_page='casualties')
