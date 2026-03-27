@@ -286,22 +286,9 @@
 <div class="ticker-container">
     <div class="ticker-header" id="ticker-header">Since March 1, 2026 the Strait of Hormuz has been closed resulting in a 20% reduction in global oil production</div>
 
-    <div class="assumptions-section">
-        <div class="assumptions-row">
-            <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
-                &#9662; assumptions
-            </div>
-            <div class="assumptions-customize" onclick="openSettings()">
-                &#9998; customize
-            </div>
-        </div>
-        <div class="assumptions-content" id="assumptions">
-            <ul>
-                <li id="a-closure">March 1st the Strait of Hormuz was closed due to the war with Iran.</li>
-                <li id="a-reduction">Each day the strait remains closed the world is producing 20% less oil.</li>
-                <li id="a-barrels">20% of the world's oil production for one year is roughly 7.5 billion barrels.</li>
-                <li id="a-co2">430 kg of CO2 is produced per barrel of oil.</li>
-            </ul>
+    <div class="assumptions-row">
+        <div class="assumptions-customize" onclick="openSettings()">
+            &#9998; customize
         </div>
     </div>
 
@@ -317,6 +304,20 @@
 
     <div class="pre-epoch-note" id="pre-epoch-note">
         Ticker has not started yet
+    </div>
+
+    <div class="assumptions-section">
+        <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
+            &#9662; assumptions
+        </div>
+        <div class="assumptions-content" id="assumptions">
+            <ul>
+                <li id="a-closure">March 1st the Strait of Hormuz was closed due to the war with Iran.</li>
+                <li id="a-reduction">Each day the strait remains closed the world is producing 20% less oil.</li>
+                <li id="a-barrels">20% of the world's oil production for one year is roughly 7.5 billion barrels.</li>
+                <li id="a-co2">430 kg of CO2 is produced per barrel of oil.</li>
+            </ul>
+        </div>
     </div>
 </div>
 
