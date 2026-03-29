@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}Brent Crude &harr; US Gas Price Predictor{% endblock %}
+
+{% block head %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+    body {
+        background: #0a0a0a;
+    }
+
+    .predictor-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .page-title {
+        text-align: center;
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.95rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        line-height: 1.6;
+    }
+
+    .page-subtitle {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'Courier New', monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    /* Chart */
+    .chart-card {
+        background: #1a1a2e;
+        border: 1px solid rgba(0, 212, 255, 0.15);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 0 15px rgba(0, 212, 255, 0.08);
+    }
+
+    .chart-title {
+        color: rgba(255, 255, 255, 0.7);
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    #chart {
+        width: 100%;
+        height: 450px;
+    }
+
+    /* Model section */
+    .model-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .model-formula {
+        text-align: center;
+        padding: 1.5rem;
+        background: #1a1a2e;
+        border: 1px solid rgba(0, 212, 255, 0.15);
+        border-radius: 12px;
+        box-shadow: 0 0 15px rgba(0, 212, 255, 0.08);
+    }
+
+    .formula-label {
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'Courier New', monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 0.8rem;
+    }
+
+    .formula-text {
+        color: #00d4ff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+        line-height: 1.8;
+        text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+    }
+
+    .formula-text .coef {
+        color: #00ff88;
+        font-weight: bold;
+    }
+
+    /* Metrics grid */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .metric-card {
+        background: #1a1a2e;
+        border: 1px solid rgba(0, 212, 255, 0.15);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.08);
+    }
+
+    .metric-card-title {
+        color: rgba(0, 212, 255, 0.8);
+        font-family: 'Courier New', monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .metric-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 0.6rem;
+    }
+
+    .metric-label {
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'Courier New', monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .metric-value {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+
+    .metric-value.good {
+        color: #00ff88;
+        text-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
+    }
+
+    .metric-period {
+        color: rgba(255, 255, 255, 0.3);
+        font-family: 'Courier New', monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.05em;
+        margin-top: 0.5rem;
+    }
+
+    /* Calculator */
+    .calculator-card {
+        background: #1a1a2e;
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 0 15px rgba(0, 255, 136, 0.08);
+    }
+
+    .calc-title {
+        color: rgba(0, 255, 136, 0.8);
+        font-family: 'Courier New', monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+    }
+
+    .calc-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .calc-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .calc-label {
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'Courier New', monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .calc-input {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        padding: 0.5rem 0.7rem;
+        color: #fff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .calc-input:focus {
+        border-color: rgba(0, 255, 136, 0.5);
+    }
+
+    .calc-hint {
+        color: rgba(255, 255, 255, 0.3);
+        font-family: 'Courier New', monospace;
+        font-size: 0.5rem;
+    }
+
+    .calc-btn {
+        padding: 0.6rem 1.5rem;
+        border: 1px solid rgba(0, 255, 136, 0.4);
+        border-radius: 6px;
+        background: rgba(0, 255, 136, 0.1);
+        color: rgba(0, 255, 136, 0.9);
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .calc-btn:hover {
+        background: rgba(0, 255, 136, 0.2);
+    }
+
+    .calc-result {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(0, 255, 136, 0.05);
+        border: 1px solid rgba(0, 255, 136, 0.15);
+        border-radius: 8px;
+        display: none;
+    }
+
+    .calc-result.visible {
+        display: block;
+    }
+
+    .result-main {
+        color: #00ff88;
+        font-family: 'Courier New', monospace;
+        font-size: 1.3rem;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .result-interval {
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'Courier New', monospace;
+        font-size: 0.65rem;
+        text-align: center;
+        letter-spacing: 0.05em;
+    }
+
+    /* Error banner */
+    .error-banner {
+        text-align: center;
+        padding: 1rem;
+        color: rgba(255, 77, 106, 0.8);
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        background: rgba(255, 77, 106, 0.08);
+        border: 1px solid rgba(255, 77, 106, 0.2);
+        border-radius: 8px;
+    }
+
+    /* Data source */
+    .data-source {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.25);
+        font-family: 'Courier New', monospace;
+        font-size: 0.5rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .data-source a {
+        color: rgba(0, 212, 255, 0.5);
+        text-decoration: none;
+    }
+
+    .data-source a:hover {
+        color: rgba(0, 212, 255, 0.8);
+    }
+
+    @media (max-width: 600px) {
+        .metrics-grid { grid-template-columns: 1fr; }
+        .calc-inputs { grid-template-columns: 1fr; }
+        #chart { height: 320px; }
+        .formula-text { font-size: 0.7rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="predictor-container">
+    <div class="page-title">
+        Brent Crude &harr; US Gasoline Price Predictor
+    </div>
+    <div class="page-subtitle">
+        FRED Economic Data &bull; Indexed Time Series &bull; OLS Regression Model
+    </div>
+
+    {% if data.error %}
+    <div class="error-banner">{{ data.error }}</div>
+    {% endif %}
+
+    <!-- Chart -->
+    <div class="chart-card">
+        <div class="chart-title">Indexed Price Comparison (Base = 100)</div>
+        <div id="chart"></div>
+    </div>
+
+    <!-- Model Formula -->
+    <div class="model-formula">
+        <div class="formula-label">OLS Regression Model</div>
+        <div class="formula-text">
+            &Delta;Gas<sub>t</sub> = <span class="coef" id="coef-intercept">{{ data.coefficients.intercept }}</span>
+            + <span class="coef" id="coef-brent">{{ data.coefficients.brent }}</span> &times; &Delta;Brent<sub>t</sub>
+            + <span class="coef" id="coef-lag">{{ data.coefficients.lag_gas }}</span> &times; &Delta;Gas<sub>t-1</sub>
+        </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-card-title">Train Set</div>
+            <div class="metric-row">
+                <span class="metric-label">R-Squared</span>
+                <span class="metric-value good">{{ data.metrics.train.r2 }}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Avg Error (MAE)</span>
+                <span class="metric-value">${{ data.metrics.train.mae }}/gal</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">N Observations</span>
+                <span class="metric-value">{{ data.metrics.train.n }}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">95% Prediction Interval</span>
+                <span class="metric-value">&plusmn; ${{ data.metrics.pred_interval_95 }}/gal</span>
+            </div>
+            <div class="metric-period">{{ data.metrics.train.period }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-card-title">Test Set</div>
+            <div class="metric-row">
+                <span class="metric-label">R-Squared</span>
+                <span class="metric-value good">{{ data.metrics.test.r2 }}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Avg Error (MAE)</span>
+                <span class="metric-value">${{ data.metrics.test.mae }}/gal</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">N Observations</span>
+                <span class="metric-value">{{ data.metrics.test.n }}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">95% Prediction Interval</span>
+                <span class="metric-value">&plusmn; ${{ data.metrics.pred_interval_95 }}/gal</span>
+            </div>
+            <div class="metric-period">{{ data.metrics.test.period }}</div>
+        </div>
+    </div>
+
+    <!-- Calculator -->
+    <div class="calculator-card">
+        <div class="calc-title">Prediction Calculator</div>
+        <div class="calc-inputs">
+            <div class="calc-group">
+                <label class="calc-label" for="calc-brent">Change in Brent Crude ($/bbl)</label>
+                <input class="calc-input" id="calc-brent" type="number" step="0.01" value="5.00">
+                <div class="calc-hint">Latest Brent: ${{ data.latest_brent }}/bbl</div>
+            </div>
+            <div class="calc-group">
+                <label class="calc-label" for="calc-lag-gas">Previous Month Gas Change ($/gal)</label>
+                <input class="calc-input" id="calc-lag-gas" type="number" step="0.001" value="{{ data.latest_delta_gas }}">
+                <div class="calc-hint">Latest gas change: ${{ data.latest_delta_gas }}/gal</div>
+            </div>
+        </div>
+        <button class="calc-btn" onclick="predict()">Predict Gas Price Change</button>
+        <div class="calc-result" id="calc-result">
+            <div class="result-main" id="result-value">--</div>
+            <div class="result-interval" id="result-interval">--</div>
+        </div>
+    </div>
+
+    <div class="data-source">
+        Data: <a href="https://fred.stlouisfed.org/series/POILBREUSDM" target="_blank">POILBREUSDM</a> &bull;
+        <a href="https://fred.stlouisfed.org/series/GASREGW" target="_blank">GASREGW</a> &bull;
+        Federal Reserve Bank of St. Louis
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Chart data from Flask
+    const chartData = {{ data.chart_data | tojson }};
+
+    // Coefficients for calculator
+    const COEF = {
+        intercept: {{ data.coefficients.intercept }},
+        brent: {{ data.coefficients.brent }},
+        lag_gas: {{ data.coefficients.lag_gas }},
+    };
+    const PRED_INTERVAL = {{ data.metrics.pred_interval_95 }};
+
+    // Build chart
+    if (chartData.brent_dates.length > 0) {
+        const brentTrace = {
+            x: chartData.brent_dates,
+            y: chartData.brent_index,
+            customdata: chartData.brent_price,
+            name: 'Brent Crude (Jan 1992 = 100)',
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#4fc3f7', width: 2 },
+            hovertemplate: '%{x}<br>Index: %{y:.1f}<br>$%{customdata:.2f}/bbl<extra></extra>'
+        };
+
+        const gasTrace = {
+            x: chartData.gas_dates,
+            y: chartData.gas_index,
+            customdata: chartData.gas_price,
+            name: 'US Gas Price (Base = 100)',
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#66bb6a', width: 2, dash: 'dash' },
+            hovertemplate: '%{x}<br>Index: %{y:.1f}<br>$%{customdata:.3f}/gal<extra></extra>'
+        };
+
+        const layout = {
+            template: 'plotly_dark',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#e0e0e0', family: 'Courier New, monospace', size: 11 },
+            xaxis: {
+                rangeslider: { visible: true },
+                gridcolor: 'rgba(255,255,255,0.06)',
+            },
+            yaxis: {
+                title: { text: 'Index Value', font: { size: 11 } },
+                gridcolor: 'rgba(255,255,255,0.06)',
+            },
+            legend: { x: 0.01, y: 0.99, font: { size: 10 } },
+            margin: { t: 20, r: 20, b: 10, l: 50 },
+            showlegend: true,
+        };
+
+        Plotly.newPlot('chart', [brentTrace, gasTrace], layout, {
+            responsive: true,
+            displayModeBar: true,
+            modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+        });
+    }
+
+    // Prediction calculator
+    function predict() {
+        const deltaBrent = parseFloat(document.getElementById('calc-brent').value) || 0;
+        const lagGas = parseFloat(document.getElementById('calc-lag-gas').value) || 0;
+
+        const prediction = COEF.intercept + COEF.brent * deltaBrent + COEF.lag_gas * lagGas;
+        const low = prediction - PRED_INTERVAL;
+        const high = prediction + PRED_INTERVAL;
+
+        const sign = prediction >= 0 ? '+' : '';
+        document.getElementById('result-value').textContent =
+            sign + prediction.toFixed(4) + ' $/gal';
+
+        document.getElementById('result-interval').textContent =
+            '95% interval: ' + low.toFixed(4) + ' to ' + (high >= 0 ? '+' : '') + high.toFixed(4) + ' $/gal';
+
+        document.getElementById('calc-result').classList.add('visible');
+    }
+</script>
+{% endblock %}

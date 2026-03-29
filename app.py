@@ -42,6 +42,13 @@ def fertilizer():
     return render_template('fertilizer.html', active_page='fertilizer')
 
 
+@app.route('/gas-predictor')
+def gas_predictor():
+    from gas_predictor import get_gas_predictor_data
+    data = get_gas_predictor_data()
+    return render_template('gas_predictor.html', active_page='gas_predictor', data=data)
+
+
 @app.route('/casualties')
 def casualties():
     return render_template('casualties.html', active_page='casualties')

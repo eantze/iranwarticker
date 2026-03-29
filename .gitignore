@@ -3,5 +3,6 @@ __pycache__/
 *.pyc
 venv/
 data/
+cache/
 market_data.db
 .DS_Store
