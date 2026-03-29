@@ -24,6 +24,7 @@ body {
     color: #ffffff;
     font-family: 'Inter', system-ui, sans-serif;
     min-height: 100vh;
+    padding-top: 52px;
 }
 
 /* Nav Bar */
