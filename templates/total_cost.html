@@ -87,7 +87,8 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 2rem 3rem;
-        max-width: 700px;
+        max-width: 900px;
+        width: 100%;
     }
 
     .cost-item {
@@ -101,8 +102,9 @@
         color: #ffffff;
         font-family: 'Courier New', monospace;
         font-weight: bold;
-        font-size: 2.2rem;
+        font-size: 1.6rem;
         letter-spacing: 0.03em;
+        word-break: break-word;
     }
 
     .cost-value.oil {
@@ -352,7 +354,7 @@
     .btn-reset:hover { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.9); }
 
     @media (max-width: 600px) {
-        .cost-value { font-size: 1.5rem; }
+        .cost-value { font-size: 1.1rem; }
         .cost-grid { grid-template-columns: 1fr; gap: 1.5rem; }
         .cost-header { font-size: 0.85rem; }
         .settings-panel { padding: 1.5rem; }
@@ -583,10 +585,7 @@
     }
 
     function fmt(n) {
-        if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
-        if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-        if (n >= 1e3) return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
-        return n.toLocaleString('en-US');
+        return Math.floor(n).toLocaleString('en-US');
     }
 
     function updateAssumptions() {
