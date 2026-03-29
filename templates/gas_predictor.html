@@ -265,10 +265,18 @@
         margin-bottom: 0.5rem;
     }
 
-    .result-interval {
-        color: rgba(255, 255, 255, 0.5);
+    .result-detail {
+        color: rgba(255, 255, 255, 0.6);
         font-family: 'Courier New', monospace;
-        font-size: 0.65rem;
+        font-size: 0.75rem;
+        text-align: center;
+        margin-bottom: 0.4rem;
+    }
+
+    .result-interval {
+        color: rgba(255, 255, 255, 0.4);
+        font-family: 'Courier New', monospace;
+        font-size: 0.6rem;
         text-align: center;
         letter-spacing: 0.05em;
     }
@@ -392,19 +400,20 @@
         <div class="calc-title">Prediction Calculator</div>
         <div class="calc-inputs">
             <div class="calc-group">
-                <label class="calc-label" for="calc-brent">Change in Brent Crude ($/bbl)</label>
-                <input class="calc-input" id="calc-brent" type="number" step="0.01" value="5.00">
-                <div class="calc-hint">Latest Brent: ${{ data.latest_brent }}/bbl</div>
+                <label class="calc-label" for="calc-brent">Current Brent Crude Price ($/bbl)</label>
+                <input class="calc-input" id="calc-brent" type="number" step="0.01" value="{{ data.latest_brent }}">
+                <div class="calc-hint">Last known: ${{ data.latest_brent }}/bbl</div>
             </div>
             <div class="calc-group">
-                <label class="calc-label" for="calc-lag-gas">Previous Month Gas Change ($/gal)</label>
-                <input class="calc-input" id="calc-lag-gas" type="number" step="0.001" value="{{ data.latest_delta_gas }}">
-                <div class="calc-hint">Latest gas change: ${{ data.latest_delta_gas }}/gal</div>
+                <label class="calc-label" for="calc-gas">Current US Gas Price ($/gal)</label>
+                <input class="calc-input" id="calc-gas" type="number" step="0.001" value="{{ data.latest_gas }}">
+                <div class="calc-hint">Last known: ${{ data.latest_gas }}/gal</div>
             </div>
         </div>
-        <button class="calc-btn" onclick="predict()">Predict Gas Price Change</button>
+        <button class="calc-btn" onclick="predict()">Predict Next Month Gas Price</button>
         <div class="calc-result" id="calc-result">
             <div class="result-main" id="result-value">--</div>
+            <div class="result-detail" id="result-detail">--</div>
             <div class="result-interval" id="result-interval">--</div>
         </div>
     </div>
@@ -422,13 +431,16 @@
     // Chart data from Flask
     const chartData = {{ data.chart_data | tojson }};
 
-    // Coefficients for calculator
+    // Coefficients and reference values for calculator
     const COEF = {
         intercept: {{ data.coefficients.intercept }},
         brent: {{ data.coefficients.brent }},
         lag_gas: {{ data.coefficients.lag_gas }},
     };
     const PRED_INTERVAL = {{ data.metrics.pred_interval_95 }};
+    const PREV_BRENT = {{ data.latest_brent }};
+    const PREV_GAS = {{ data.latest_gas }};
+    const PREV_DELTA_GAS = {{ data.latest_delta_gas }};
 
     // Build chart
     if (chartData.brent_dates.length > 0) {
@@ -481,19 +493,29 @@
 
     // Prediction calculator
     function predict() {
-        const deltaBrent = parseFloat(document.getElementById('calc-brent').value) || 0;
-        const lagGas = parseFloat(document.getElementById('calc-lag-gas').value) || 0;
+        const currentBrent = parseFloat(document.getElementById('calc-brent').value) || 0;
+        const currentGas = parseFloat(document.getElementById('calc-gas').value) || 0;
 
-        const prediction = COEF.intercept + COEF.brent * deltaBrent + COEF.lag_gas * lagGas;
-        const low = prediction - PRED_INTERVAL;
-        const high = prediction + PRED_INTERVAL;
+        // Compute deltas from the entered prices vs last known
+        const deltaBrent = currentBrent - PREV_BRENT;
+        const deltaGas = currentGas - PREV_GAS;
 
-        const sign = prediction >= 0 ? '+' : '';
+        // Predict next month's change using current deltas
+        const predictedChange = COEF.intercept + COEF.brent * deltaBrent + COEF.lag_gas * deltaGas;
+        const predictedPrice = currentGas + predictedChange;
+        const low = predictedPrice - PRED_INTERVAL;
+        const high = predictedPrice + PRED_INTERVAL;
+
         document.getElementById('result-value').textContent =
-            sign + prediction.toFixed(4) + ' $/gal';
+            '$' + predictedPrice.toFixed(3) + '/gal';
+
+        const changeSign = predictedChange >= 0 ? '+' : '';
+        document.getElementById('result-detail').textContent =
+            'Predicted change: ' + changeSign + predictedChange.toFixed(4) +
+            ' $/gal (Brent ' + (deltaBrent >= 0 ? '+' : '') + deltaBrent.toFixed(2) + ' $/bbl)';
 
         document.getElementById('result-interval').textContent =
-            '95% interval: ' + low.toFixed(4) + ' to ' + (high >= 0 ? '+' : '') + high.toFixed(4) + ' $/gal';
+            '95% interval: $' + low.toFixed(3) + ' to $' + high.toFixed(3) + '/gal';
 
         document.getElementById('calc-result').classList.add('visible');
     }
