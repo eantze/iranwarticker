@@ -281,6 +281,129 @@
         letter-spacing: 0.05em;
     }
 
+    /* Brent live chart */
+    .brent-chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+
+    .brent-source-label {
+        color: rgba(255, 255, 255, 0.25);
+        font-family: 'Courier New', monospace;
+        font-size: 0.5rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-top: 0.3rem;
+    }
+
+    .brent-quote {
+        text-align: right;
+    }
+
+    .brent-price {
+        display: block;
+        font-family: 'Courier New', monospace;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.2;
+    }
+
+    .brent-change {
+        display: block;
+        font-family: 'Courier New', monospace;
+        font-size: 0.65rem;
+        font-weight: 500;
+    }
+
+    .brent-chart-body {
+        width: 100%;
+        min-height: 200px;
+    }
+
+    .brent-chart-body svg {
+        width: 100%;
+        height: auto;
+    }
+
+    .brent-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.2);
+        animation: shimmer 1.5s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 0.7; }
+    }
+
+    /* SVG Chart Styles */
+    .market-chart .axis-label {
+        font-family: 'Courier New', monospace;
+        font-size: 9px;
+        fill: rgba(255, 255, 255, 0.35);
+    }
+
+    .market-chart .grid-line {
+        stroke: rgba(255, 255, 255, 0.05);
+        stroke-width: 1;
+    }
+
+    .market-chart .march1-line {
+        stroke: rgba(255, 165, 0, 0.6);
+        stroke-width: 1.5;
+        stroke-dasharray: 6, 4;
+    }
+
+    .market-chart .march1-label {
+        font-family: 'Courier New', monospace;
+        font-size: 9px;
+        fill: rgba(255, 165, 0, 0.8);
+        font-weight: 600;
+    }
+
+    .market-chart .march1-tag {
+        font-family: 'Courier New', monospace;
+        font-size: 8px;
+        fill: rgba(255, 165, 0, 0.6);
+    }
+
+    .market-chart .hover-zone {
+        cursor: crosshair;
+    }
+
+    .market-chart .hover-crosshair {
+        stroke: rgba(255, 255, 255, 0.3);
+        stroke-width: 1;
+        stroke-dasharray: 3, 3;
+    }
+
+    .market-chart .tooltip-bg {
+        fill: rgba(20, 20, 40, 0.9);
+        stroke: rgba(255, 255, 255, 0.15);
+        stroke-width: 1;
+    }
+
+    .market-chart .tooltip-text {
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+        fill: #ffffff;
+        font-weight: 700;
+    }
+
+    .market-chart .tooltip-date {
+        font-family: 'Courier New', monospace;
+        font-size: 9px;
+        fill: rgba(255, 255, 255, 0.5);
+    }
+
     /* Error banner */
     .error-banner {
         text-align: center;
@@ -395,6 +518,23 @@
         </div>
     </div>
 
+    <!-- Live Brent Crude Chart -->
+    <div class="chart-card" id="brent-live-card">
+        <div class="brent-chart-header">
+            <div>
+                <div class="chart-title">Brent Crude Oil Futures</div>
+                <div class="brent-source-label">Yahoo Finance &bull; Live</div>
+            </div>
+            <div class="brent-quote" id="brent-quote">
+                <span class="brent-price" id="brent-price">--</span>
+                <span class="brent-change" id="brent-change"></span>
+            </div>
+        </div>
+        <div class="brent-chart-body" id="brent-chart-body">
+            <div class="brent-loading">Loading live data...</div>
+        </div>
+    </div>
+
     <!-- Calculator -->
     <div class="calculator-card">
         <div class="calc-title">Prediction Calculator</div>
@@ -490,6 +630,159 @@
             modeBarButtonsToRemove: ['lasso2d', 'select2d'],
         });
     }
+
+    // ---- Live Brent Crude chart from Yahoo Finance ----
+    const STRAIT_DATE = '2026-03-01';
+    try {
+        const shared = localStorage.getItem('shared_strait_date');
+        if (shared) STRAIT_DATE = shared;
+    } catch(e) {}
+
+    async function fetchBrentChart() {
+        try {
+            const resp = await fetch('/api/prices');
+            const data = await resp.json();
+            const brent = data.brent;
+            if (!brent) return;
+
+            // Update quote display
+            if (brent.price != null) {
+                document.getElementById('brent-price').textContent = brent.price.toFixed(2);
+                const change = brent.change;
+                const pct = brent.change_pct;
+                const isUp = change >= 0;
+                const color = isUp ? '#00e5a0' : '#ff4d6a';
+                const arrow = isUp ? '\u25B2' : '\u25BC';
+                document.getElementById('brent-change').innerHTML =
+                    `<span style="color:${color}">${arrow} ${change >= 0 ? '+' : ''}${Math.abs(change).toFixed(2)} (${pct})</span>`;
+
+                // Update calculator default to live price
+                document.getElementById('calc-brent').value = brent.price.toFixed(2);
+            }
+
+            // Build SVG chart
+            const history = (brent.history || []).filter(d => d.date >= '2026-01-01');
+            if (history.length < 2) return;
+
+            const container = document.getElementById('brent-chart-body');
+            const W = 920, H = 260;
+            const PAD_L = 60, PAD_R = 20, PAD_T = 20, PAD_B = 40;
+            const chartW = W - PAD_L - PAD_R, chartH = H - PAD_T - PAD_B;
+
+            const closes = history.map(d => d.close);
+            const dates = history.map(d => d.date);
+            const min = Math.min(...closes), max = Math.max(...closes);
+            const range = max - min || 1;
+            const yMin = min - range * 0.05, yMax = max + range * 0.05, yRange = yMax - yMin;
+
+            function xPos(i) { return PAD_L + (i / (closes.length - 1)) * chartW; }
+            function yPos(v) { return PAD_T + (1 - (v - yMin) / yRange) * chartH; }
+
+            const linePts = closes.map((v, i) => `${xPos(i)},${yPos(v)}`).join(' ');
+            const areaPts = `${xPos(0)},${PAD_T + chartH} ${linePts} ${xPos(closes.length - 1)},${PAD_T + chartH}`;
+
+            const first = closes[0], last = closes[closes.length - 1];
+            const isUp = last >= first;
+            const lineColor = isUp ? '#00e5a0' : '#ff4d6a';
+
+            // Strait marker
+            let markerSvg = '';
+            const markerIdx = dates.findIndex(d => d >= STRAIT_DATE);
+            if (markerIdx >= 0) {
+                const mx = xPos(markerIdx);
+                const straitD = new Date(STRAIT_DATE + 'T00:00:00Z');
+                const straitLabel = straitD.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+                markerSvg = `
+                    <line x1="${mx}" y1="${PAD_T}" x2="${mx}" y2="${PAD_T + chartH}" class="march1-line"/>
+                    <text x="${mx}" y="${H - 8}" text-anchor="middle" class="march1-label">${straitLabel}</text>
+                    <text x="${mx + 4}" y="${PAD_T + 14}" text-anchor="start" class="march1-tag">Strait Closed</text>
+                `;
+            }
+
+            // Y-axis
+            let yLabels = '';
+            for (let i = 0; i <= 4; i++) {
+                const val = yMin + (i / 4) * yRange;
+                const y = yPos(val);
+                yLabels += `<text x="${PAD_L - 8}" y="${y + 4}" text-anchor="end" class="axis-label">${val.toFixed(2)}</text>`;
+                yLabels += `<line x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" class="grid-line"/>`;
+            }
+
+            // X-axis
+            const xLabels = `
+                <text x="${PAD_L}" y="${H - 8}" text-anchor="start" class="axis-label">${dates[0]}</text>
+                <text x="${W - PAD_R}" y="${H - 8}" text-anchor="end" class="axis-label">${dates[dates.length - 1]}</text>
+            `;
+
+            container.innerHTML = `
+                <svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" class="market-chart" id="svg-brent-live">
+                    <defs>
+                        <linearGradient id="grad-brent-live" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.15"/>
+                            <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.01"/>
+                        </linearGradient>
+                    </defs>
+                    ${yLabels}
+                    <polygon points="${areaPts}" fill="url(#grad-brent-live)"/>
+                    <polyline points="${linePts}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    ${markerSvg}
+                    ${xLabels}
+                    <rect x="${PAD_L}" y="${PAD_T}" width="${chartW}" height="${chartH}" fill="transparent" class="hover-zone"/>
+                    <line id="hover-line-bl" x1="0" y1="${PAD_T}" x2="0" y2="${PAD_T + chartH}" class="hover-crosshair" style="display:none"/>
+                    <circle id="hover-dot-bl" r="4" fill="${lineColor}" stroke="#0a0a1a" stroke-width="2" style="display:none"/>
+                    <g id="hover-tooltip-bl" style="display:none">
+                        <rect id="hover-bg-bl" rx="4" ry="4" class="tooltip-bg"/>
+                        <text id="hover-text-bl" class="tooltip-text"></text>
+                        <text id="hover-date-bl" class="tooltip-date"></text>
+                    </g>
+                </svg>
+            `;
+
+            // Hover events
+            const svgEl = document.getElementById('svg-brent-live');
+            const hoverZone = svgEl.querySelector('.hover-zone');
+            hoverZone.addEventListener('mousemove', (e) => {
+                const rect = svgEl.getBoundingClientRect();
+                const scaleX = W / rect.width;
+                const mouseX = (e.clientX - rect.left) * scaleX;
+                const idx = Math.max(0, Math.min(closes.length - 1, Math.round(((mouseX - PAD_L) / chartW) * (closes.length - 1))));
+
+                const px = xPos(idx), py = yPos(closes[idx]);
+                document.getElementById('hover-line-bl').setAttribute('x1', px);
+                document.getElementById('hover-line-bl').setAttribute('x2', px);
+                document.getElementById('hover-line-bl').style.display = '';
+                document.getElementById('hover-dot-bl').setAttribute('cx', px);
+                document.getElementById('hover-dot-bl').setAttribute('cy', py);
+                document.getElementById('hover-dot-bl').style.display = '';
+
+                const ttX = px < W / 2 ? px + 12 : px - 100;
+                const ttY = Math.max(PAD_T, py - 30);
+                document.getElementById('hover-text-bl').textContent = '$' + closes[idx].toFixed(2);
+                document.getElementById('hover-text-bl').setAttribute('x', ttX + 6);
+                document.getElementById('hover-text-bl').setAttribute('y', ttY + 14);
+                document.getElementById('hover-date-bl').textContent = dates[idx];
+                document.getElementById('hover-date-bl').setAttribute('x', ttX + 6);
+                document.getElementById('hover-date-bl').setAttribute('y', ttY + 28);
+                document.getElementById('hover-bg-bl').setAttribute('x', ttX);
+                document.getElementById('hover-bg-bl').setAttribute('y', ttY);
+                document.getElementById('hover-bg-bl').setAttribute('width', 88);
+                document.getElementById('hover-bg-bl').setAttribute('height', 34);
+                document.getElementById('hover-tooltip-bl').style.display = '';
+            });
+            hoverZone.addEventListener('mouseleave', () => {
+                document.getElementById('hover-line-bl').style.display = 'none';
+                document.getElementById('hover-dot-bl').style.display = 'none';
+                document.getElementById('hover-tooltip-bl').style.display = 'none';
+            });
+
+        } catch(e) {
+            console.error('Failed to fetch Brent chart:', e);
+        }
+    }
+
+    fetchBrentChart();
+    // Refresh every 5 minutes
+    setInterval(fetchBrentChart, 300000);
 
     // Prediction calculator
     function predict() {
