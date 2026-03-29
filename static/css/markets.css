@@ -1,6 +1,6 @@
 /* Markets Dashboard */
 .markets-page {
-    padding-top: 72px;
+    padding-top: 20px;
     padding-bottom: 3rem;
     min-height: 100vh;
 }
@@ -302,7 +302,22 @@
 /* Responsive */
 @media (max-width: 768px) {
     .markets-page {
-        padding-top: 62px;
+        padding-top: 10px;
+    }
+
+    .markets-controls {
+        flex-wrap: wrap;
+    }
+
+    .control-group {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .control-btn,
+    .control-btn-reset {
+        flex: 1;
+        text-align: center;
     }
 
     .charts-grid {
