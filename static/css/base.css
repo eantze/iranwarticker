@@ -19,6 +19,10 @@
     box-sizing: border-box;
 }
 
+html, body {
+    overflow-x: hidden;
+}
+
 body {
     background: #0a0a1a;
     color: #ffffff;
@@ -38,7 +42,6 @@ body {
     background: rgba(10, 10, 26, 0.92);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    overflow-x: hidden;
 }
 
 .nav-inner {
@@ -51,7 +54,6 @@ body {
     align-items: center;
     justify-content: space-between;
     box-sizing: border-box;
-    overflow: hidden;
 }
 
 .nav-brand {
@@ -113,14 +115,16 @@ body {
 @media (max-width: 768px) {
     .nav-toggle {
         display: flex;
+        flex-shrink: 0;
     }
 
     .nav-links {
         display: none;
-        position: absolute;
+        position: fixed;
         top: 52px;
         left: 0;
         right: 0;
+        z-index: 200;
         background: rgba(10, 10, 26, 0.97);
         backdrop-filter: blur(12px);
         border-bottom: 1px solid rgba(255, 255, 255, 0.07);

@@ -8,7 +8,7 @@
         background: #000000;
     }
 
-    .ticker-container {
+    .ticker-section {
         text-align: center;
         display: flex;
         flex-direction: column;
@@ -28,12 +28,6 @@
         text-transform: uppercase;
         max-width: 700px;
         line-height: 1.6;
-    }
-
-    .section-divider {
-        width: 120px;
-        height: 1px;
-        background: rgba(255, 255, 255, 0.15);
     }
 
     .section-title {
@@ -320,6 +314,11 @@
     }
 
     @media (max-width: 600px) {
+        .ticker-section {
+            padding: 0 1rem;
+            gap: 2rem;
+        }
+
         .glow-number {
             font-size: 2.5rem;
         }
@@ -340,7 +339,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="ticker-container">
+<!-- Urea Section -->
+<div class="ticker-section">
     <div class="ticker-header" id="ticker-header">Since March 1, 2026 the Strait of Hormuz has been closed, disrupting global fertilizer supply chains</div>
 
     <div class="assumptions-row">
@@ -349,7 +349,6 @@
         </div>
     </div>
 
-    <!-- Urea Section -->
     <div class="section-title">Urea (Nitrogen-Based)</div>
 
     <div class="counter-group">
@@ -362,9 +361,13 @@
         <div class="ticker-label">Metric Tonnes of Urea Not Exported</div>
     </div>
 
-    <div class="section-divider"></div>
+    <div class="pre-epoch-note" id="pre-epoch-note">
+        Ticker has not started yet
+    </div>
+</div>
 
-    <!-- Phosphates Section -->
+<!-- Phosphates Section -->
+<div class="ticker-section">
     <div class="section-title">Phosphates</div>
 
     <div class="counter-group">
@@ -376,10 +379,10 @@
         <div class="glow-number phosphate" id="phos-tonnes">0</div>
         <div class="ticker-label">Metric Tonnes of Phosphate Not Exported</div>
     </div>
+</div>
 
-    <div class="section-divider"></div>
-
-    <!-- Sulfur Section -->
+<!-- Sulfur Section -->
+<div class="ticker-section">
     <div class="section-title">Sulfur</div>
 
     <div class="counter-group">
@@ -390,10 +393,6 @@
     <div class="counter-group">
         <div class="glow-number sulfur" id="sulfur-tonnes">0</div>
         <div class="ticker-label">Metric Tonnes of Sulfur Not Exported</div>
-    </div>
-
-    <div class="pre-epoch-note" id="pre-epoch-note">
-        Ticker has not started yet
     </div>
 
     <div class="assumptions-section">
