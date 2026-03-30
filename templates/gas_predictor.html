@@ -534,6 +534,18 @@
         </div>
     </div>
 
+    <!-- Backtest: Predicted vs Actual -->
+    <div class="chart-card">
+        <div class="chart-title">Predicted vs Actual Gas Price (Jan 2020 &ndash; Present)</div>
+        <div id="backtest-chart" style="width:100%;height:400px;"></div>
+    </div>
+
+    <!-- Scatter Plot -->
+    <div class="chart-card">
+        <div class="chart-title">Brent &Delta; vs Gas &Delta; &mdash; Scatter with Regression Line</div>
+        <div id="scatter-chart" style="width:100%;height:400px;"></div>
+    </div>
+
     <div class="data-source">
         Data: <a href="https://fred.stlouisfed.org/series/POILBREUSDM" target="_blank">POILBREUSDM</a> &bull;
         <a href="https://fred.stlouisfed.org/series/GASREGW" target="_blank">GASREGW</a> &bull;
@@ -557,6 +569,8 @@
     const PREV_BRENT = {{ data.latest_brent }};
     const PREV_GAS = {{ data.latest_gas }};
     const PREV_DELTA_GAS = {{ data.latest_delta_gas }};
+    const backtestData = {{ data.backtest_data | tojson }};
+    const scatterData = {{ data.scatter_data | tojson }};
 
     // Build chart
     if (chartData.brent_dates.length > 0) {
@@ -807,5 +821,144 @@
 
     // Run initial prediction on page load
     predict();
+
+    // ---- Backtest Chart: Predicted vs Actual ----
+    if (backtestData.dates.length > 1) {
+        const btActual = {
+            x: backtestData.dates,
+            y: backtestData.actual,
+            name: 'Actual Gas Price',
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#66bb6a', width: 2 },
+            hovertemplate: '%{x}<br>Actual: $%{y:.3f}/gal<extra></extra>',
+        };
+        const btPredicted = {
+            x: backtestData.dates,
+            y: backtestData.predicted,
+            name: 'Model Predicted',
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#4fc3f7', width: 2, dash: 'dash' },
+            hovertemplate: '%{x}<br>Predicted: $%{y:.3f}/gal<extra></extra>',
+        };
+        const btUpper = {
+            x: backtestData.dates,
+            y: backtestData.upper,
+            name: '95% Upper',
+            type: 'scatter',
+            mode: 'lines',
+            line: { width: 0 },
+            showlegend: false,
+            hoverinfo: 'skip',
+        };
+        const btLower = {
+            x: backtestData.dates,
+            y: backtestData.lower,
+            name: '95% Interval',
+            type: 'scatter',
+            mode: 'lines',
+            line: { width: 0 },
+            fill: 'tonexty',
+            fillcolor: 'rgba(79, 195, 247, 0.1)',
+            hoverinfo: 'skip',
+        };
+
+        const btLayout = {
+            template: 'plotly_dark',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#e0e0e0', family: 'Courier New, monospace', size: 11 },
+            xaxis: { gridcolor: 'rgba(255,255,255,0.06)' },
+            yaxis: {
+                title: { text: '$/gal', font: { size: 11 } },
+                gridcolor: 'rgba(255,255,255,0.06)',
+            },
+            legend: { x: 0.01, y: 0.99, font: { size: 10 } },
+            margin: { t: 20, r: 20, b: 40, l: 50 },
+            showlegend: true,
+        };
+
+        Plotly.newPlot('backtest-chart', [btUpper, btLower, btActual, btPredicted], btLayout, {
+            responsive: true,
+            displayModeBar: false,
+        });
+    }
+
+    // ---- Scatter Plot: delta_brent vs delta_gas ----
+    if (scatterData.delta_brent.length > 0) {
+        // Split into train and test points
+        const trainX = [], trainY = [], trainDates = [];
+        const testX = [], testY = [], testDates = [];
+        for (let i = 0; i < scatterData.delta_brent.length; i++) {
+            if (scatterData.is_train[i]) {
+                trainX.push(scatterData.delta_brent[i]);
+                trainY.push(scatterData.delta_gas[i]);
+                trainDates.push(scatterData.dates[i]);
+            } else {
+                testX.push(scatterData.delta_brent[i]);
+                testY.push(scatterData.delta_gas[i]);
+                testDates.push(scatterData.dates[i]);
+            }
+        }
+
+        const scTrain = {
+            x: trainX, y: trainY, customdata: trainDates,
+            name: 'Train',
+            type: 'scatter',
+            mode: 'markers',
+            marker: { color: 'rgba(79, 195, 247, 0.5)', size: 5 },
+            hovertemplate: '%{customdata}<br>\u0394Brent: $%{x:.2f}<br>\u0394Gas: $%{y:.4f}<extra></extra>',
+        };
+        const scTest = {
+            x: testX, y: testY, customdata: testDates,
+            name: 'Test',
+            type: 'scatter',
+            mode: 'markers',
+            marker: { color: 'rgba(102, 187, 106, 0.6)', size: 5 },
+            hovertemplate: '%{customdata}<br>\u0394Brent: $%{x:.2f}<br>\u0394Gas: $%{y:.4f}<extra></extra>',
+        };
+
+        // Regression line across the data range
+        const allX = scatterData.delta_brent;
+        const xMin = Math.min(...allX), xMax = Math.max(...allX);
+        const lineX = [xMin, xMax];
+        const lineY = lineX.map(x => COEF.intercept + COEF.brent * x);
+        const scLine = {
+            x: lineX, y: lineY,
+            name: 'OLS Fit',
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#ff7043', width: 2 },
+            hoverinfo: 'skip',
+        };
+
+        const scLayout = {
+            template: 'plotly_dark',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#e0e0e0', family: 'Courier New, monospace', size: 11 },
+            xaxis: {
+                title: { text: '\u0394 Brent ($/bbl)', font: { size: 11 } },
+                gridcolor: 'rgba(255,255,255,0.06)',
+                zeroline: true,
+                zerolinecolor: 'rgba(255,255,255,0.15)',
+            },
+            yaxis: {
+                title: { text: '\u0394 Gas ($/gal)', font: { size: 11 } },
+                gridcolor: 'rgba(255,255,255,0.06)',
+                zeroline: true,
+                zerolinecolor: 'rgba(255,255,255,0.15)',
+            },
+            legend: { x: 0.01, y: 0.99, font: { size: 10 } },
+            margin: { t: 20, r: 20, b: 50, l: 60 },
+            showlegend: true,
+        };
+
+        Plotly.newPlot('scatter-chart', [scTrain, scTest, scLine], scLayout, {
+            responsive: true,
+            displayModeBar: false,
+        });
+    }
 </script>
 {% endblock %}

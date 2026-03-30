@@ -183,6 +183,51 @@ def _compute_gas_predictor_data():
         "pred_interval_95": round(1.96 * std_resid, 4),
     }
 
+    # ---- Walk-forward backtest from Jan 2020 ----
+    BACKTEST_START = "2020-01-01"
+    backtest = merged[merged["date"] >= BACKTEST_START].copy()
+
+    if len(backtest) > 1:
+        # Predict delta_gas for each month using actual inputs
+        X_bt = backtest[["delta_brent", "lag_delta_gas"]].values
+        backtest["predicted_delta"] = model.predict(X_bt)
+
+        # Walk-forward: start from actual gas price, accumulate predicted changes
+        bt_dates = backtest["date"].dt.strftime("%Y-%m-%d").tolist()
+        bt_actual = backtest["gas"].round(3).tolist()
+
+        # Build predicted price series
+        bt_predicted = []
+        bt_upper = []
+        bt_lower = []
+        pred_price = float(backtest["gas"].iloc[0])  # start from actual
+        for i, row in backtest.iterrows():
+            if len(bt_predicted) == 0:
+                bt_predicted.append(round(pred_price, 3))
+            else:
+                pred_price = float(backtest["gas"].iloc[backtest.index.get_loc(i) - 1]) + float(row["predicted_delta"])
+                bt_predicted.append(round(pred_price, 3))
+            bt_upper.append(round(pred_price + 1.96 * std_resid, 3))
+            bt_lower.append(round(pred_price - 1.96 * std_resid, 3))
+
+        backtest_data = {
+            "dates": bt_dates,
+            "actual": bt_actual,
+            "predicted": bt_predicted,
+            "upper": bt_upper,
+            "lower": bt_lower,
+        }
+    else:
+        backtest_data = {"dates": [], "actual": [], "predicted": [], "upper": [], "lower": []}
+
+    # ---- Scatter plot data: delta_brent vs delta_gas ----
+    scatter_data = {
+        "delta_brent": merged["delta_brent"].round(4).tolist(),
+        "delta_gas": merged["delta_gas"].round(4).tolist(),
+        "dates": merged["date"].dt.strftime("%Y-%m-%d").tolist(),
+        "is_train": (merged["date"] < split).tolist(),
+    }
+
     # Latest values for the calculator default
     latest = merged.iloc[-1]
 
@@ -190,6 +235,8 @@ def _compute_gas_predictor_data():
         "chart_data": chart_data,
         "coefficients": coefficients,
         "metrics": metrics,
+        "backtest_data": backtest_data,
+        "scatter_data": scatter_data,
         "latest_brent": round(float(latest["brent"]), 2),
         "latest_gas": round(float(latest["gas"]), 3),
         "latest_delta_gas": round(float(latest["delta_gas"]), 4),
@@ -216,6 +263,8 @@ def _empty_model():
             "test": {"r2": 0, "mae": 0, "n": 0, "period": "N/A"},
             "pred_interval_95": 0,
         },
+        "backtest_data": {"dates": [], "actual": [], "predicted": [], "upper": [], "lower": []},
+        "scatter_data": {"delta_brent": [], "delta_gas": [], "dates": [], "is_train": []},
         "latest_brent": 0,
         "latest_gas": 0,
         "latest_delta_gas": 0,
