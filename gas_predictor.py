@@ -1,6 +1,8 @@
 """Data processing pipeline and OLS regression for Brent Crude vs US Gas Price."""
 
 import logging
+import threading
+import time
 
 import numpy as np
 import pandas as pd
@@ -17,6 +19,14 @@ SPLIT_DATE = "2019-04-01"
 # Index base dates
 BRENT_BASE_DATE = "1992-01-01"
 GAS_BASE_DATE = "1993-01-01"  # earliest reliable monthly observation
+
+# In-memory cache
+_cache = {
+    "data": None,
+    "timestamp": 0,
+}
+_cache_lock = threading.Lock()
+CACHE_TTL = 6 * 3600  # 6 hours
 
 
 def _parse_series(raw_observations):
@@ -37,6 +47,35 @@ def _parse_series(raw_observations):
 
 
 def get_gas_predictor_data():
+    """Return cached gas predictor data, recomputing if stale."""
+    now = time.time()
+    with _cache_lock:
+        if _cache["data"] is not None and (now - _cache["timestamp"]) < CACHE_TTL:
+            logger.info("Gas predictor: serving from memory cache (age: %ds)", int(now - _cache["timestamp"]))
+            return _cache["data"]
+
+    # Compute fresh data (outside lock to avoid blocking other requests)
+    logger.info("Gas predictor: computing fresh data...")
+    data = _compute_gas_predictor_data()
+
+    with _cache_lock:
+        _cache["data"] = data
+        _cache["timestamp"] = time.time()
+
+    return data
+
+
+def warm_cache():
+    """Pre-compute and cache gas predictor data. Call from app startup."""
+    logger.info("Gas predictor: warming cache in background...")
+    try:
+        get_gas_predictor_data()
+        logger.info("Gas predictor: cache warmed successfully")
+    except Exception as e:
+        logger.error("Gas predictor: cache warm failed: %s", e)
+
+
+def _compute_gas_predictor_data():
     """Fetch FRED data, compute indexes, run regression, return everything for the template."""
     # Fetch raw data
     brent_raw = fetch_series("POILBREUSDM", start="1990-01-01")
