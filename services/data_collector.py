@@ -17,6 +17,7 @@ YF_INSTRUMENTS = {
     "dji": {"symbol": "^DJI", "label": "Dow Jones Industrial"},
     "wti": {"symbol": "CL=F", "label": "WTI Crude Oil Futures"},
     "brent": {"symbol": "BZ=F", "label": "Brent Crude Oil Futures"},
+    "tyx": {"symbol": "^TYX", "label": "30-Year Treasury Yield"},
 }
 
 # Intervals

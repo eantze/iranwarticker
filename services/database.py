@@ -69,6 +69,17 @@ def init_db():
             fetched_at INTEGER,
             UNIQUE(url, source_group)
         );
+
+        CREATE TABLE IF NOT EXISTS resolved_sources (
+            source_id INTEGER PRIMARY KEY REFERENCES sources(id),
+            resolved_url TEXT,
+            resolved_title TEXT,
+            status TEXT NOT NULL DEFAULT 'pending',
+            error TEXT,
+            attempts INTEGER NOT NULL DEFAULT 0,
+            resolved_at INTEGER,
+            created_at INTEGER
+        );
     """)
     conn.commit()
     logger.info("Database initialized at %s", DB_PATH)
@@ -227,6 +238,65 @@ def get_all_sources():
     rows = conn.execute(
         "SELECT url, title, source_group, fetched_at FROM sources ORDER BY fetched_at DESC",
     ).fetchall()
+    grouped = {}
+    for row in rows:
+        grp = row["source_group"] or "general"
+        if grp not in grouped:
+            grouped[grp] = []
+        grouped[grp].append({"url": row["url"], "title": row["title"]})
+    return grouped
+
+
+def get_unresolved_sources(limit=20):
+    """Get sources that haven't been resolved yet or need retry."""
+    conn = _get_conn()
+    rows = conn.execute("""
+        SELECT s.id, s.url, s.title, s.source_group
+        FROM sources s
+        LEFT JOIN resolved_sources rs ON s.id = rs.source_id
+        WHERE rs.source_id IS NULL
+           OR (rs.status = 'pending' AND rs.attempts < 3)
+        ORDER BY s.fetched_at DESC
+        LIMIT ?
+    """, (limit,)).fetchall()
+    return [dict(row) for row in rows]
+
+
+def save_resolved_source(source_id, resolved_url, resolved_title, status, error=None):
+    """Save or update a resolved source entry."""
+    import time
+    conn = _get_conn()
+    conn.execute("""
+        INSERT INTO resolved_sources (source_id, resolved_url, resolved_title, status, error, attempts, resolved_at, created_at)
+        VALUES (?, ?, ?, ?, ?, 1, ?, ?)
+        ON CONFLICT(source_id) DO UPDATE SET
+            resolved_url = COALESCE(excluded.resolved_url, resolved_sources.resolved_url),
+            resolved_title = COALESCE(excluded.resolved_title, resolved_sources.resolved_title),
+            status = excluded.status,
+            error = excluded.error,
+            attempts = resolved_sources.attempts + 1,
+            resolved_at = CASE WHEN excluded.status = 'resolved' THEN excluded.resolved_at ELSE resolved_sources.resolved_at END
+    """, (
+        source_id, resolved_url, resolved_title, status, error,
+        int(time.time()) if status == 'resolved' else None,
+        int(time.time()),
+    ))
+    conn.commit()
+
+
+def get_all_sources_resolved():
+    """Get all sources, preferring resolved data when available."""
+    conn = _get_conn()
+    rows = conn.execute("""
+        SELECT
+            COALESCE(CASE WHEN rs.status = 'resolved' THEN rs.resolved_url END, s.url) AS url,
+            COALESCE(CASE WHEN rs.status = 'resolved' THEN rs.resolved_title END, s.title) AS title,
+            s.source_group,
+            s.fetched_at
+        FROM sources s
+        LEFT JOIN resolved_sources rs ON s.id = rs.source_id
+        ORDER BY s.fetched_at DESC
+    """).fetchall()
     grouped = {}
     for row in rows:
         grp = row["source_group"] or "general"

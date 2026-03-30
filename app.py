@@ -57,11 +57,11 @@ def casualties():
 @app.route('/api/casualties')
 def api_casualties():
     try:
-        from services.database import get_all_casualties, get_casualty_totals, get_all_sources
+        from services.database import get_all_casualties, get_casualty_totals, get_all_sources_resolved
         return jsonify({
             "totals": get_casualty_totals(),
             "daily": get_all_casualties(),
-            "sources": get_all_sources(),
+            "sources": get_all_sources_resolved(),
         })
     except Exception:
         return jsonify({"totals": {}, "daily": {}, "sources": {}})
@@ -81,6 +81,7 @@ def api_prices():
             "dji": {"label": "Dow Jones Industrial", "price": None, "change": None, "change_pct": None, "history": []},
             "wti": {"label": "WTI Crude Oil Futures", "price": None, "change": None, "change_pct": None, "history": []},
             "brent": {"label": "Brent Crude Oil Futures", "price": None, "change": None, "change_pct": None, "history": []},
+            "tyx": {"label": "30-Year Treasury Yield", "price": None, "change": None, "change_pct": None, "history": []},
             "updated_at": None,
         })
 
@@ -104,6 +105,10 @@ def _startup():
 
                 # Start casualty data collection (Gemini)
                 start_casualty_collector()
+
+                # Start source URL resolver (beautifies redirect URLs)
+                from services.source_resolver import start_source_resolver
+                start_source_resolver()
 
             # Pre-warm gas predictor cache (works in both demo and prod)
             from gas_predictor import warm_cache

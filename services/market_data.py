@@ -13,6 +13,7 @@ INSTRUMENTS = {
     "dji": {"db_key": "dji", "label": "Dow Jones Industrial", "symbol": "^DJI"},
     "wti": {"db_key": "wti", "label": "WTI Crude Oil Futures", "symbol": "CL=F"},
     "brent": {"db_key": "brent", "label": "Brent Crude Oil Futures", "symbol": "BZ=F"},
+    "tyx": {"db_key": "tyx", "label": "30-Year Treasury Yield", "symbol": "^TYX"},
 }
 
 

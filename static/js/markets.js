@@ -346,7 +346,7 @@ function updateQuoteDisplay(key, instrument) {
 
 function renderDashboard(data) {
     rawData = data;
-    const keys = ["sp500", "dji", "wti", "brent"];
+    const keys = ["sp500", "dji", "tyx", "wti", "brent"];
     for (const key of keys) {
         const instrument = data[key];
         if (!instrument) continue;
