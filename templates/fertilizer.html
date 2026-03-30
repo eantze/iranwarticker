@@ -313,6 +313,68 @@
         line-height: 1.8;
     }
 
+    .prev-link {
+        color: #00d4ff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s, transform 0.3s;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .prev-link:hover {
+        color: #4de8ff;
+        transform: translateY(-2px);
+    }
+
+    .prev-link .prev-arrow {
+        font-size: 1.2rem;
+        animation: bounce-up 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce-up {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+
+    .next-link {
+        color: #00d4ff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s, transform 0.3s;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .next-link:hover {
+        color: #4de8ff;
+        transform: translateY(2px);
+    }
+
+    .next-link .next-arrow {
+        font-size: 1.2rem;
+        animation: bounce-down 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce-down {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(6px); }
+    }
+
     @media (max-width: 600px) {
         .ticker-section {
             padding: 0 1rem;
@@ -340,7 +402,7 @@
 
 {% block content %}
 <!-- Urea Section -->
-<div class="ticker-section">
+<div class="ticker-section" id="section-urea">
     <div class="ticker-header" id="ticker-header">Since March 1, 2026 the Strait of Hormuz has been closed, disrupting global fertilizer supply chains</div>
 
     <div class="assumptions-row">
@@ -364,10 +426,19 @@
     <div class="pre-epoch-note" id="pre-epoch-note">
         Ticker has not started yet
     </div>
+
+    <a class="next-link" onclick="document.getElementById('section-phosphates').scrollIntoView({behavior:'smooth'})">
+        <span>Phosphates</span>
+        <span class="next-arrow">&#8964;</span>
+    </a>
 </div>
 
 <!-- Phosphates Section -->
-<div class="ticker-section">
+<div class="ticker-section" id="section-phosphates">
+    <a class="prev-link" onclick="document.getElementById('section-urea').scrollIntoView({behavior:'smooth'})">
+        <span class="prev-arrow">&#8963;</span>
+        <span>Urea</span>
+    </a>
     <div class="section-title">Phosphates</div>
 
     <div class="counter-group">
@@ -379,10 +450,19 @@
         <div class="glow-number phosphate" id="phos-tonnes">0</div>
         <div class="ticker-label">Metric Tonnes of Phosphate Not Exported</div>
     </div>
+
+    <a class="next-link" onclick="document.getElementById('section-sulfur').scrollIntoView({behavior:'smooth'})">
+        <span>Sulfur</span>
+        <span class="next-arrow">&#8964;</span>
+    </a>
 </div>
 
 <!-- Sulfur Section -->
-<div class="ticker-section">
+<div class="ticker-section" id="section-sulfur">
+    <a class="prev-link" onclick="document.getElementById('section-phosphates').scrollIntoView({behavior:'smooth'})">
+        <span class="prev-arrow">&#8963;</span>
+        <span>Phosphates</span>
+    </a>
     <div class="section-title">Sulfur</div>
 
     <div class="counter-group">

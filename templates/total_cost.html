@@ -410,12 +410,16 @@
     <div class="section-title">Environmental Impact</div>
     <div class="cost-grid">
         <div class="cost-item">
-            <div class="cost-value env" id="val-env-barrels">--</div>
-            <div class="cost-label">Barrels of Oil Not Produced</div>
+            <div class="cost-value env" id="val-env-co2-oil">--</div>
+            <div class="cost-label">Kg of CO2 from Oil Not Produced</div>
         </div>
         <div class="cost-item">
-            <div class="cost-value env" id="val-env-co2">--</div>
-            <div class="cost-label">Kg of CO2 Not Produced</div>
+            <div class="cost-value env" id="val-env-co2-lng">--</div>
+            <div class="cost-label">Kg of CO2 from LNG Not Produced</div>
+        </div>
+        <div class="cost-item full">
+            <div class="cost-value env" id="val-env-co2-total">--</div>
+            <div class="cost-label">Total Kg of CO2 Not Produced</div>
         </div>
     </div>
 
@@ -446,7 +450,8 @@
             <ul>
                 <li>Oil: <span id="a-oil-prod">36.5</span> billion barrels/year, <span id="a-oil-red">20</span>% transits the strait.</li>
                 <li>Natural Gas: <span id="a-gas-prod">500</span>M metric tonnes/year, <span id="a-gas-red">20</span>% transits the strait.</li>
-                <li>CO2: <span id="a-co2">430</span> kg of CO2 produced per barrel of oil.</li>
+                <li>CO2 (Oil): <span id="a-co2">430</span> kg of CO2 produced per barrel of oil.</li>
+                <li>CO2 (LNG): Burning 1 metric tonne of LNG releases roughly <span id="a-co2-lng">2.76</span> tonnes of CO2.</li>
                 <li>Urea: <span id="a-urea-prod">190</span>M tonnes/year, <span id="a-urea-red">32.5</span>% transits the strait.</li>
                 <li>Phosphates: <span id="a-phos-prod">237</span>M tonnes/year, <span id="a-phos-red">20</span>% from the region.</li>
                 <li>Sulfur: <span id="a-sulfur-prod">75</span>M tonnes/year, <span id="a-sulfur-red">45</span>% transits the strait.</li>
@@ -492,6 +497,11 @@
             <label class="setting-label" for="s-co2">CO2 per Barrel of Oil (kg)</label>
             <input class="setting-input" id="s-co2" type="number" step="1" min="1">
             <div class="setting-hint">Default: 430 kg</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-co2-lng">CO2 per Tonne of LNG (tonnes)</label>
+            <input class="setting-input" id="s-co2-lng" type="number" step="0.01" min="0.01">
+            <div class="setting-hint">Default: 2.76 tonnes</div>
         </div>
 
         <div class="settings-section-label fert">Fertilizer</div>
@@ -554,6 +564,7 @@
         gasProd: 500,        // million metric tonnes/year
         gasRed: 20,          // percent
         co2: 430,            // kg CO2 per barrel
+        co2Lng: 2.76,        // tonnes CO2 per tonne LNG
         ureaProd: 190,       // million tonnes/year
         ureaRed: 32.5,       // percent
         phosProd: 237,       // million tonnes/year
@@ -594,6 +605,7 @@
         document.getElementById('a-gas-prod').textContent = v.gasProd;
         document.getElementById('a-gas-red').textContent = v.gasRed;
         document.getElementById('a-co2').textContent = v.co2;
+        document.getElementById('a-co2-lng').textContent = v.co2Lng;
         document.getElementById('a-urea-prod').textContent = v.ureaProd;
         document.getElementById('a-urea-red').textContent = v.ureaRed;
         document.getElementById('a-phos-prod').textContent = v.phosProd;
@@ -642,10 +654,13 @@
         document.getElementById('val-gas-pct').textContent = gasPct.toFixed(4) + '%';
         document.getElementById('val-gas-tonnes').textContent = fmt(gasTonnes);
 
-        // Environmental (uses same oil barrels + CO2 conversion)
-        document.getElementById('val-env-barrels').textContent = fmt(oilBarrels);
-        const co2Kg = oilBarrels * v.co2;
-        document.getElementById('val-env-co2').textContent = fmt(co2Kg);
+        // Environmental
+        const co2OilKg = oilBarrels * v.co2;
+        const co2LngKg = Math.floor(gasTonnes * v.co2Lng * 1000);
+        const co2TotalKg = co2OilKg + co2LngKg;
+        document.getElementById('val-env-co2-oil').textContent = fmt(co2OilKg);
+        document.getElementById('val-env-co2-lng').textContent = fmt(co2LngKg);
+        document.getElementById('val-env-co2-total').textContent = fmt(co2TotalKg);
 
         // Fertilizer
         const ureaTonnes = Math.floor(days * (v.ureaProd * 1e6 / 365) * (v.ureaRed / 100));
@@ -663,6 +678,7 @@
         document.getElementById('s-gas-prod').value = v.gasProd;
         document.getElementById('s-gas-red').value = v.gasRed;
         document.getElementById('s-co2').value = v.co2;
+        document.getElementById('s-co2-lng').value = v.co2Lng;
         document.getElementById('s-urea-prod').value = v.ureaProd;
         document.getElementById('s-urea-red').value = v.ureaRed;
         document.getElementById('s-phos-prod').value = v.phosProd;
@@ -683,6 +699,7 @@
         v.gasProd = parseFloat(document.getElementById('s-gas-prod').value) || D.gasProd;
         v.gasRed = parseFloat(document.getElementById('s-gas-red').value) || D.gasRed;
         v.co2 = parseFloat(document.getElementById('s-co2').value) || D.co2;
+        v.co2Lng = parseFloat(document.getElementById('s-co2-lng').value) || D.co2Lng;
         v.ureaProd = parseFloat(document.getElementById('s-urea-prod').value) || D.ureaProd;
         v.ureaRed = parseFloat(document.getElementById('s-urea-red').value) || D.ureaRed;
         v.phosProd = parseFloat(document.getElementById('s-phos-prod').value) || D.phosProd;

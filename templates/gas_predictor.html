@@ -224,35 +224,12 @@
         font-size: 0.5rem;
     }
 
-    .calc-btn {
-        padding: 0.6rem 1.5rem;
-        border: 1px solid rgba(0, 255, 136, 0.4);
-        border-radius: 6px;
-        background: rgba(0, 255, 136, 0.1);
-        color: rgba(0, 255, 136, 0.9);
-        font-family: 'Courier New', monospace;
-        font-size: 0.75rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .calc-btn:hover {
-        background: rgba(0, 255, 136, 0.2);
-    }
-
     .calc-result {
-        margin-top: 1rem;
         padding: 1rem;
         background: rgba(0, 255, 136, 0.05);
         border: 1px solid rgba(0, 255, 136, 0.15);
         border-radius: 8px;
-        display: none;
-    }
-
-    .calc-result.visible {
-        display: block;
+        margin-bottom: 1rem;
     }
 
     .result-main {
@@ -537,10 +514,15 @@
 
     <!-- Calculator -->
     <div class="calculator-card">
-        <div class="calc-title">Prediction Calculator</div>
+        <div class="calc-title">Predicted National Average Gas Price</div>
+        <div class="calc-result visible" id="calc-result">
+            <div class="result-main" id="result-value">--</div>
+            <div class="result-detail" id="result-detail">--</div>
+            <div class="result-interval" id="result-interval">--</div>
+        </div>
         <div class="calc-inputs">
             <div class="calc-group">
-                <label class="calc-label" for="calc-brent">Current Brent Crude Price ($/bbl)</label>
+                <label class="calc-label" for="calc-brent">Brent Crude Price ($/bbl)</label>
                 <input class="calc-input" id="calc-brent" type="number" step="0.01" value="{{ data.latest_brent }}">
                 <div class="calc-hint">Last known: ${{ data.latest_brent }}/bbl</div>
             </div>
@@ -549,12 +531,6 @@
                 <input class="calc-input" id="calc-gas" type="number" step="0.001" value="{{ data.latest_gas }}">
                 <div class="calc-hint">Last known: ${{ data.latest_gas }}/gal</div>
             </div>
-        </div>
-        <button class="calc-btn" onclick="predict()">Predict Next Month Gas Price</button>
-        <div class="calc-result" id="calc-result">
-            <div class="result-main" id="result-value">--</div>
-            <div class="result-detail" id="result-detail">--</div>
-            <div class="result-interval" id="result-interval">--</div>
         </div>
     </div>
 
@@ -656,8 +632,12 @@
                 document.getElementById('brent-change').innerHTML =
                     `<span style="color:${color}">${arrow} ${change >= 0 ? '+' : ''}${Math.abs(change).toFixed(2)} (${pct})</span>`;
 
-                // Update calculator default to live price
-                document.getElementById('calc-brent').value = brent.price.toFixed(2);
+                // Update calculator default to live price and re-predict
+                if (!userEdited) {
+                    liveBrentPrice = brent.price;
+                    document.getElementById('calc-brent').value = brent.price.toFixed(2);
+                    predict();
+                }
             }
 
             // Build SVG chart
@@ -785,6 +765,9 @@
     setInterval(fetchBrentChart, 300000);
 
     // Prediction calculator
+    let userEdited = false;
+    let liveBrentPrice = null;
+
     function predict() {
         const currentBrent = parseFloat(document.getElementById('calc-brent').value) || 0;
         const currentGas = parseFloat(document.getElementById('calc-gas').value) || 0;
@@ -802,15 +785,27 @@
         document.getElementById('result-value').textContent =
             '$' + predictedPrice.toFixed(3) + '/gal';
 
+        const source = userEdited ? 'based on user settings' : 'based on current Brent price';
         const changeSign = predictedChange >= 0 ? '+' : '';
         document.getElementById('result-detail').textContent =
             'Predicted change: ' + changeSign + predictedChange.toFixed(4) +
-            ' $/gal (Brent ' + (deltaBrent >= 0 ? '+' : '') + deltaBrent.toFixed(2) + ' $/bbl)';
+            ' $/gal (' + source + ')';
 
         document.getElementById('result-interval').textContent =
             '95% interval: $' + low.toFixed(3) + ' to $' + high.toFixed(3) + '/gal';
-
-        document.getElementById('calc-result').classList.add('visible');
     }
+
+    // Auto-predict on input change
+    document.getElementById('calc-brent').addEventListener('input', function() {
+        userEdited = true;
+        predict();
+    });
+    document.getElementById('calc-gas').addEventListener('input', function() {
+        userEdited = true;
+        predict();
+    });
+
+    // Run initial prediction on page load
+    predict();
 </script>
 {% endblock %}

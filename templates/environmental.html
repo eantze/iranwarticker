@@ -8,7 +8,7 @@
         background: #000000;
     }
 
-    .ticker-container {
+    .ticker-section {
         text-align: center;
         display: flex;
         flex-direction: column;
@@ -17,6 +17,20 @@
         padding: 0 1.5rem;
         min-height: 100vh;
         justify-content: center;
+    }
+
+    .section-title {
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'Courier New', monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+    }
+
+    .section-divider {
+        width: 120px;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.15);
     }
 
     .ticker-header {
@@ -47,6 +61,13 @@
         font-family: 'Courier New', monospace;
         font-weight: bold;
         letter-spacing: 0.05em;
+        max-width: 100%;
+        overflow-wrap: break-word;
+        word-break: break-all;
+    }
+
+    .glow-number.co2 {
+        font-size: 3.2rem;
     }
 
     .ticker-label {
@@ -262,9 +283,80 @@
         color: rgba(255, 255, 255, 0.9);
     }
 
+    .prev-link {
+        color: #00d4ff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s, transform 0.3s;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .prev-link:hover {
+        color: #4de8ff;
+        transform: translateY(-2px);
+    }
+
+    .prev-link .prev-arrow {
+        font-size: 1.2rem;
+        animation: bounce-up 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce-up {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+
+    .next-link {
+        color: #00d4ff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s, transform 0.3s;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .next-link:hover {
+        color: #4de8ff;
+        transform: translateY(2px);
+    }
+
+    .next-link .next-arrow {
+        font-size: 1.2rem;
+        animation: bounce-down 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce-down {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(6px); }
+    }
+
     @media (max-width: 600px) {
+        .ticker-section {
+            padding: 0 1rem;
+            gap: 2rem;
+        }
+
         .glow-number {
             font-size: 2.5rem;
+        }
+
+        .glow-number.co2 {
+            font-size: 1.8rem;
         }
 
         .ticker-header {
@@ -283,7 +375,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="ticker-container">
+<!-- Oil Section -->
+<div class="ticker-section" id="section-oil">
     <div class="ticker-header" id="ticker-header">Since March 1, 2026 the Strait of Hormuz has been closed resulting in a 20% reduction in global oil production</div>
 
     <div class="assumptions-row">
@@ -292,18 +385,63 @@
         </div>
     </div>
 
+    <div class="section-title">Oil</div>
+
     <div class="counter-group">
         <div class="glow-number" id="barrels">0</div>
         <div class="ticker-label">Yearly Global Barrels Not Produced</div>
     </div>
 
     <div class="counter-group">
-        <div class="glow-number" id="co2">0</div>
-        <div class="ticker-label">Yearly Kg of CO2 Not Produced</div>
+        <div class="glow-number co2" id="co2-oil">0</div>
+        <div class="ticker-label">Yearly Kg of CO2 from Oil Not Produced</div>
     </div>
 
     <div class="pre-epoch-note" id="pre-epoch-note">
         Ticker has not started yet
+    </div>
+
+    <a class="next-link" onclick="document.getElementById('section-gas').scrollIntoView({behavior:'smooth'})">
+        <span>Natural Gas</span>
+        <span class="next-arrow">&#8964;</span>
+    </a>
+</div>
+
+<!-- Natural Gas Section -->
+<div class="ticker-section" id="section-gas">
+    <a class="prev-link" onclick="document.getElementById('section-oil').scrollIntoView({behavior:'smooth'})">
+        <span class="prev-arrow">&#8963;</span>
+        <span>Oil</span>
+    </a>
+    <div class="section-title">Natural Gas</div>
+
+    <div class="counter-group">
+        <div class="glow-number" id="gas-tonnes">0</div>
+        <div class="ticker-label">Yearly Metric Tonnes of Natural Gas Not Produced</div>
+    </div>
+
+    <div class="counter-group">
+        <div class="glow-number co2" id="co2-gas">0</div>
+        <div class="ticker-label">Yearly Kg of CO2 from LNG Not Produced</div>
+    </div>
+
+    <a class="next-link" onclick="document.getElementById('section-total').scrollIntoView({behavior:'smooth'})">
+        <span>Combined Total</span>
+        <span class="next-arrow">&#8964;</span>
+    </a>
+</div>
+
+<!-- Combined Total CO2 Section -->
+<div class="ticker-section" id="section-total">
+    <a class="prev-link" onclick="document.getElementById('section-gas').scrollIntoView({behavior:'smooth'})">
+        <span class="prev-arrow">&#8963;</span>
+        <span>Natural Gas</span>
+    </a>
+    <div class="section-title">Combined Total</div>
+
+    <div class="counter-group">
+        <div class="glow-number co2" id="co2-total">0</div>
+        <div class="ticker-label">Total Yearly Kg of CO2 Not Produced</div>
     </div>
 
     <div class="assumptions-section">
@@ -316,6 +454,9 @@
                 <li id="a-reduction">Each day the strait remains closed the world is producing 20% less oil.</li>
                 <li id="a-barrels">20% of the world's oil production for one year is roughly 7.5 billion barrels.</li>
                 <li id="a-co2">430 kg of CO2 is produced per barrel of oil.</li>
+                <li id="a-gas-reduction">20% of the world's natural gas production moves through the Strait of Hormuz.</li>
+                <li id="a-gas-tonnes">500 million metric tonnes of natural gas is produced globally per year.</li>
+                <li id="a-co2-lng">Burning 1 metric tonne of LNG releases roughly 2.76 tonnes of CO2.</li>
             </ul>
         </div>
     </div>
@@ -348,9 +489,27 @@
         </div>
 
         <div class="setting-group">
-            <label class="setting-label" for="input-co2">CO2 per Barrel (kg)</label>
+            <label class="setting-label" for="input-co2">CO2 per Barrel of Oil (kg)</label>
             <input class="setting-input" id="input-co2" type="number" step="1" min="1">
             <div class="setting-hint">Default: 430 kg of CO2 per barrel of oil</div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-gas-production">Yearly Global Natural Gas Production (Million Metric Tonnes)</label>
+            <input class="setting-input" id="input-gas-production" type="number" step="1" min="1">
+            <div class="setting-hint">Default: 500 million metric tonnes/year</div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-gas-reduction">Natural Gas Production Reduction (%)</label>
+            <input class="setting-input" id="input-gas-reduction" type="number" step="0.1" min="0.1" max="100">
+            <div class="setting-hint">Default: 20% (share of gas through Strait of Hormuz)</div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="input-co2-lng">CO2 per Tonne of LNG (tonnes)</label>
+            <input class="setting-input" id="input-co2-lng" type="number" step="0.01" min="0.01">
+            <div class="setting-hint">Default: 2.76 tonnes of CO2 per tonne of LNG</div>
         </div>
 
         <div class="settings-actions">
@@ -365,20 +524,30 @@
 <script>
     const MS_PER_DAY = 86400000;
 
-    // Defaults
+    // Oil defaults
     const DEFAULT_PRODUCTION = 36.5;  // billion barrels/year
     const DEFAULT_REDUCTION = 20;     // percent
     const DEFAULT_DATE = '2026-03-01';
     const DEFAULT_CO2 = 430;          // kg per barrel
 
-    // Active values
+    // Gas defaults
+    const DEFAULT_GAS_PRODUCTION = 500;  // million metric tonnes/year
+    const DEFAULT_GAS_REDUCTION = 20;    // percent
+    const DEFAULT_CO2_LNG = 2.76;        // tonnes CO2 per tonne LNG
+
+    // Active values — Oil
     let yearlyProduction = DEFAULT_PRODUCTION;
     let reductionPercent = DEFAULT_REDUCTION;
     let epochDate = DEFAULT_DATE;
     let epoch = new Date(DEFAULT_DATE + 'T00:00:00Z').getTime();
     let co2KgPerBarrel = DEFAULT_CO2;
 
-    // Load saved settings from localStorage
+    // Active values — Gas
+    let gasProduction = DEFAULT_GAS_PRODUCTION;
+    let gasReduction = DEFAULT_GAS_REDUCTION;
+    let co2PerTonneLng = DEFAULT_CO2_LNG;
+
+    // Load saved settings
     function loadSettings() {
         try {
             const saved = localStorage.getItem('env_ticker_settings');
@@ -391,9 +560,11 @@
                     epoch = new Date(s.date + 'T00:00:00Z').getTime();
                 }
                 if (s.co2) co2KgPerBarrel = s.co2;
+                if (s.gasProduction) gasProduction = s.gasProduction;
+                if (s.gasReduction) gasReduction = s.gasReduction;
+                if (s.co2Lng) co2PerTonneLng = s.co2Lng;
             }
         } catch (e) {}
-        // Also check shared strait date
         try {
             const shared = localStorage.getItem('shared_strait_date');
             if (shared) {
@@ -411,6 +582,9 @@
             reduction: reductionPercent,
             date: epochDate,
             co2: co2KgPerBarrel,
+            gasProduction: gasProduction,
+            gasReduction: gasReduction,
+            co2Lng: co2PerTonneLng,
         }));
         localStorage.setItem('shared_strait_date', epochDate);
     }
@@ -420,9 +594,16 @@
         return (yearlyProduction * 1e9 / 365) * (reductionPercent / 100);
     }
 
-    // DOM
-    const co2El = document.getElementById('co2');
+    function getGasTonnesPerDay() {
+        return (gasProduction * 1e6 / 365) * (gasReduction / 100);
+    }
+
+    // DOM elements
     const barrelsEl = document.getElementById('barrels');
+    const co2OilEl = document.getElementById('co2-oil');
+    const gasTonnesEl = document.getElementById('gas-tonnes');
+    const co2GasEl = document.getElementById('co2-gas');
+    const co2TotalEl = document.getElementById('co2-total');
     const noteEl = document.getElementById('pre-epoch-note');
     const headerEl = document.getElementById('ticker-header');
 
@@ -450,6 +631,14 @@
             pct + '% of the world\'s oil production for one year is roughly ' + reducedBbl + ' billion barrels.';
         document.getElementById('a-co2').textContent =
             co2KgPerBarrel + ' kg of CO2 is produced per barrel of oil.';
+
+        const reducedGas = (gasProduction * (gasReduction / 100)).toFixed(0);
+        document.getElementById('a-gas-reduction').textContent =
+            gasReduction + '% of the world\'s natural gas production moves through the Strait of Hormuz.';
+        document.getElementById('a-gas-tonnes').textContent =
+            gasProduction + ' million metric tonnes of natural gas is produced globally per year (' + reducedGas + 'M tonnes reduced).';
+        document.getElementById('a-co2-lng').textContent =
+            'Burning 1 metric tonne of LNG releases roughly ' + co2PerTonneLng + ' tonnes of CO2.';
     }
 
     function update() {
@@ -457,8 +646,11 @@
         const elapsed = now - epoch;
 
         if (elapsed < 0) {
-            co2El.textContent = '0';
             barrelsEl.textContent = '0';
+            co2OilEl.textContent = '0';
+            gasTonnesEl.textContent = '0';
+            co2GasEl.textContent = '0';
+            co2TotalEl.textContent = '0';
             noteEl.style.display = 'block';
             return;
         }
@@ -466,11 +658,24 @@
         noteEl.style.display = 'none';
 
         const daysElapsed = elapsed / MS_PER_DAY;
-        const barrelsNotProduced = Math.floor(daysElapsed * getBarrelsPerDay());
-        const co2Kg = Math.floor(barrelsNotProduced * co2KgPerBarrel);
 
-        co2El.textContent = co2Kg.toLocaleString('en-US');
+        // Oil
+        const barrelsNotProduced = Math.floor(daysElapsed * getBarrelsPerDay());
+        const co2OilKg = Math.floor(barrelsNotProduced * co2KgPerBarrel);
+
+        // Gas
+        const gasTonnesNotProduced = Math.floor(daysElapsed * getGasTonnesPerDay());
+        // 1 tonne LNG → co2PerTonneLng tonnes CO2 → convert to kg (* 1000)
+        const co2GasKg = Math.floor(gasTonnesNotProduced * co2PerTonneLng * 1000);
+
+        // Combined
+        const co2TotalKg = co2OilKg + co2GasKg;
+
         barrelsEl.textContent = barrelsNotProduced.toLocaleString('en-US');
+        co2OilEl.textContent = co2OilKg.toLocaleString('en-US');
+        gasTonnesEl.textContent = gasTonnesNotProduced.toLocaleString('en-US');
+        co2GasEl.textContent = co2GasKg.toLocaleString('en-US');
+        co2TotalEl.textContent = co2TotalKg.toLocaleString('en-US');
     }
 
     // Settings panel
@@ -479,6 +684,9 @@
         document.getElementById('input-reduction').value = reductionPercent;
         document.getElementById('input-date').value = epochDate;
         document.getElementById('input-co2').value = co2KgPerBarrel;
+        document.getElementById('input-gas-production').value = gasProduction;
+        document.getElementById('input-gas-reduction').value = gasReduction;
+        document.getElementById('input-co2-lng').value = co2PerTonneLng;
         document.getElementById('settings-overlay').classList.add('open');
     }
 
@@ -491,14 +699,21 @@
         const red = parseFloat(document.getElementById('input-reduction').value);
         const date = document.getElementById('input-date').value;
         const co2 = parseFloat(document.getElementById('input-co2').value);
+        const gasProd = parseFloat(document.getElementById('input-gas-production').value);
+        const gasRed = parseFloat(document.getElementById('input-gas-reduction').value);
+        const co2Lng = parseFloat(document.getElementById('input-co2-lng').value);
 
         if (!prod || prod <= 0 || !red || red <= 0 || red > 100 || !date || !co2 || co2 <= 0) return;
+        if (!gasProd || gasProd <= 0 || !gasRed || gasRed <= 0 || gasRed > 100 || !co2Lng || co2Lng <= 0) return;
 
         yearlyProduction = prod;
         reductionPercent = red;
         epochDate = date;
         epoch = new Date(date + 'T00:00:00Z').getTime();
         co2KgPerBarrel = co2;
+        gasProduction = gasProd;
+        gasReduction = gasRed;
+        co2PerTonneLng = co2Lng;
 
         saveSettings();
         updateAssumptionsText();
@@ -512,11 +727,17 @@
         epochDate = DEFAULT_DATE;
         epoch = new Date(DEFAULT_DATE + 'T00:00:00Z').getTime();
         co2KgPerBarrel = DEFAULT_CO2;
+        gasProduction = DEFAULT_GAS_PRODUCTION;
+        gasReduction = DEFAULT_GAS_REDUCTION;
+        co2PerTonneLng = DEFAULT_CO2_LNG;
 
         document.getElementById('input-production').value = DEFAULT_PRODUCTION;
         document.getElementById('input-reduction').value = DEFAULT_REDUCTION;
         document.getElementById('input-date').value = DEFAULT_DATE;
         document.getElementById('input-co2').value = DEFAULT_CO2;
+        document.getElementById('input-gas-production').value = DEFAULT_GAS_PRODUCTION;
+        document.getElementById('input-gas-reduction').value = DEFAULT_GAS_REDUCTION;
+        document.getElementById('input-co2-lng').value = DEFAULT_CO2_LNG;
 
         localStorage.removeItem('env_ticker_settings');
         updateAssumptionsText();
