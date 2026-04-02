@@ -258,6 +258,41 @@
         letter-spacing: 0.05em;
     }
 
+    /* AAA current price */
+    .aaa-current {
+        text-align: center;
+        padding: 1rem 1.5rem;
+        background: #1a1a2e;
+        border: 1px solid rgba(0, 212, 255, 0.15);
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.08);
+    }
+
+    .aaa-current-label {
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'Courier New', monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 0.4rem;
+    }
+
+    .aaa-current-price {
+        color: #00d4ff;
+        font-family: 'Courier New', monospace;
+        font-size: 1.8rem;
+        font-weight: bold;
+        text-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+    }
+
+    .aaa-current-source {
+        color: rgba(255, 255, 255, 0.25);
+        font-family: 'Courier New', monospace;
+        font-size: 0.5rem;
+        letter-spacing: 0.08em;
+        margin-top: 0.3rem;
+    }
+
     /* Brent live chart */
     .brent-chart-header {
         display: flex;
@@ -450,12 +485,21 @@
                 <div class="calc-hint">Last known: ${{ data.latest_brent }}/bbl</div>
             </div>
             <div class="calc-group">
-                <label class="calc-label" for="calc-gas">Current US Gas Price ($/gal)</label>
-                <input class="calc-input" id="calc-gas" type="number" step="0.001" value="{{ data.latest_gas }}">
-                <div class="calc-hint">Last known: ${{ data.latest_gas }}/gal</div>
+                <label class="calc-label" for="calc-gas">Previous Monthly Average ($/gal)</label>
+                <input class="calc-input" id="calc-gas" type="number" step="0.001" value="{% if aaa %}{{ aaa.month_ago_regular }}{% else %}{{ data.latest_gas }}{% endif %}">
+                <div class="calc-hint">{% if aaa %}AAA month-ago avg: ${{ aaa.month_ago_regular }}/gal{% else %}Last known: ${{ data.latest_gas }}/gal{% endif %}</div>
             </div>
         </div>
     </div>
+
+    <!-- AAA Current National Average -->
+    {% if aaa %}
+    <div class="aaa-current">
+        <div class="aaa-current-label">Current National Average (Regular)</div>
+        <div class="aaa-current-price">${{ "%.3f"|format(aaa.current_regular) }}/gal</div>
+        <div class="aaa-current-source">Source: AAA &bull; gasprices.aaa.com</div>
+    </div>
+    {% endif %}
 
     <!-- Live Brent Crude Chart -->
     <div class="chart-card" id="brent-live-card">
@@ -567,7 +611,7 @@
     };
     const PRED_INTERVAL = {{ data.metrics.pred_interval_95 }};
     const PREV_BRENT = {{ data.latest_brent }};
-    const PREV_GAS = {{ data.latest_gas }};
+    const PREV_GAS = {% if aaa %}{{ aaa.month_ago_regular }}{% else %}{{ data.latest_gas }}{% endif %};
     const PREV_DELTA_GAS = {{ data.latest_delta_gas }};
     const backtestData = {{ data.backtest_data | tojson }};
     const scatterData = {{ data.scatter_data | tojson }};

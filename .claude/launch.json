@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "ticker",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "venv/bin/python",
       "runtimeArgs": ["-m", "flask", "run", "--port", "5000"],
       "port": 5000
     }

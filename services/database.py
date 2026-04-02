@@ -70,6 +70,13 @@ def init_db():
             UNIQUE(url, source_group)
         );
 
+        CREATE TABLE IF NOT EXISTS aaa_gas_prices (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            current_regular REAL NOT NULL,
+            month_ago_regular REAL NOT NULL,
+            fetched_at INTEGER NOT NULL
+        );
+
         CREATE TABLE IF NOT EXISTS resolved_sources (
             source_id INTEGER PRIMARY KEY REFERENCES sources(id),
             resolved_url TEXT,
@@ -314,6 +321,33 @@ def get_latest_history_date(symbol):
         (symbol,),
     ).fetchone()
     return row["max_date"] if row and row["max_date"] else None
+
+
+def save_aaa_gas_prices(current_regular, month_ago_regular):
+    """Save AAA national average gas prices."""
+    import time
+    conn = _get_conn()
+    conn.execute(
+        """INSERT INTO aaa_gas_prices (current_regular, month_ago_regular, fetched_at)
+           VALUES (?, ?, ?)""",
+        (current_regular, month_ago_regular, int(time.time())),
+    )
+    conn.commit()
+
+
+def get_aaa_gas_prices():
+    """Return the most recent AAA gas prices, or None."""
+    conn = _get_conn()
+    row = conn.execute(
+        "SELECT current_regular, month_ago_regular, fetched_at FROM aaa_gas_prices ORDER BY fetched_at DESC LIMIT 1"
+    ).fetchone()
+    if row:
+        return {
+            "current_regular": row["current_regular"],
+            "month_ago_regular": row["month_ago_regular"],
+            "fetched_at": row["fetched_at"],
+        }
+    return None
 
 
 def clear_sources():

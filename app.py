@@ -45,8 +45,10 @@ def fertilizer():
 @app.route('/gas-predictor')
 def gas_predictor():
     from gas_predictor import get_gas_predictor_data
+    from services.database import get_aaa_gas_prices
     data = get_gas_predictor_data()
-    return render_template('gas_predictor.html', active_page='gas_predictor', data=data)
+    aaa = get_aaa_gas_prices()
+    return render_template('gas_predictor.html', active_page='gas_predictor', data=data, aaa=aaa)
 
 
 @app.route('/casualties')
@@ -109,6 +111,10 @@ def _startup():
                 # Start source URL resolver (beautifies redirect URLs)
                 from services.source_resolver import start_source_resolver
                 start_source_resolver()
+
+                # Start AAA gas price collector
+                from services.aaa_collector import start_aaa_collector
+                start_aaa_collector()
 
             # Pre-warm gas predictor cache (works in both demo and prod)
             from gas_predictor import warm_cache
