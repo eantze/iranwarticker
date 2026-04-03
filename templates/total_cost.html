@@ -8,7 +8,7 @@
         background: #000000;
     }
 
-    .cost-container {
+    .cost-section {
         text-align: center;
         display: flex;
         flex-direction: column;
@@ -16,6 +16,7 @@
         gap: 2.5rem;
         padding: 4rem 1.5rem;
         min-height: 100vh;
+        justify-content: center;
         position: relative;
     }
 
@@ -83,6 +84,21 @@
         text-transform: uppercase;
     }
 
+    .oil-gas-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem 3rem;
+        max-width: 900px;
+        width: 100%;
+    }
+
+    .og-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+
     .cost-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -96,6 +112,10 @@
         flex-direction: column;
         align-items: center;
         gap: 0.4rem;
+    }
+
+    .cost-item .cost-value.dollar {
+        margin-top: 0.8rem;
     }
 
     .cost-value {
@@ -113,6 +133,23 @@
         text-shadow:
             0 0 12px rgba(0, 255, 200, 0.8),
             0 0 25px rgba(0, 255, 200, 0.5);
+    }
+
+    .cost-value.dollar.negative {
+        color: #ff6b6b;
+        text-shadow:
+            0 0 12px rgba(255, 107, 107, 0.8),
+            0 0 25px rgba(255, 107, 107, 0.5);
+    }
+
+    .cost-value.net {
+        font-size: 2.2rem;
+    }
+
+    .section-divider-wide {
+        width: 300px;
+        height: 1px;
+        background: rgba(0, 255, 200, 0.2);
     }
 
     .cost-value.oil {
@@ -361,8 +398,73 @@
 
     .btn-reset:hover { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.9); }
 
+    /* Section navigation */
+    .prev-link {
+        color: #00d4ff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s, transform 0.3s;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .prev-link:hover {
+        color: #4de8ff;
+        transform: translateY(-2px);
+    }
+
+    .prev-link .prev-arrow {
+        font-size: 1.2rem;
+        animation: bounce-up 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce-up {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+
+    .next-link {
+        color: #00d4ff;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s, transform 0.3s;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .next-link:hover {
+        color: #4de8ff;
+        transform: translateY(2px);
+    }
+
+    .next-link .next-arrow {
+        font-size: 1.2rem;
+        animation: bounce-down 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce-down {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(6px); }
+    }
+
     @media (max-width: 600px) {
         .cost-value { font-size: 1.1rem; }
+        .cost-value.dollar { font-size: 1.3rem; }
+        .oil-gas-columns { grid-template-columns: 1fr; gap: 2.5rem; }
         .cost-grid { grid-template-columns: 1fr; gap: 1.5rem; }
         .cost-header { font-size: 0.85rem; }
         .settings-panel { padding: 1.5rem; }
@@ -371,7 +473,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="cost-container">
+<!-- Section 1: Oil & Gas -->
+<div class="cost-section" id="section-oil-gas">
     <div class="cost-header" id="cost-header">
         Total estimated cost of the Strait of Hormuz closure
     </div>
@@ -391,83 +494,153 @@
 
     <div class="section-divider"></div>
 
-    <!-- Oil & Gas -->
     <div class="section-title">Oil &amp; Gas</div>
-    <div class="cost-grid">
-        <div class="cost-item">
-            <div class="cost-value oil" id="val-oil-pct">--</div>
-            <div class="cost-label">Yearly Oil Production Reduced</div>
+    <div class="oil-gas-columns">
+        <div class="og-column">
+            <div class="cost-item">
+                <div class="cost-value oil" id="val-oil-pct">--</div>
+                <div class="cost-label">Yearly Oil Production Reduced</div>
+            </div>
+            <div class="cost-item">
+                <div class="cost-value oil" id="val-oil-barrels">--</div>
+                <div class="cost-label">Barrels of Oil Not Produced</div>
+            </div>
+            <div class="cost-item">
+                <div class="cost-value dollar" id="val-oil-cost">--</div>
+                <div class="cost-label">Cost of Oil Not Produced</div>
+            </div>
         </div>
-        <div class="cost-item">
-            <div class="cost-value oil" id="val-oil-barrels">--</div>
-            <div class="cost-label">Barrels of Oil Not Produced</div>
-        </div>
-        <div class="cost-item">
-            <div class="cost-value oil" id="val-gas-pct">--</div>
-            <div class="cost-label">Yearly Natural Gas Production Reduced</div>
-        </div>
-        <div class="cost-item">
-            <div class="cost-value oil" id="val-gas-tonnes">--</div>
-            <div class="cost-label">Metric Tonnes of Natural Gas Not Produced</div>
-        </div>
-        <div class="cost-item">
-            <div class="cost-value dollar" id="val-oil-cost">--</div>
-            <div class="cost-label">Cost of Oil Not Produced</div>
-        </div>
-        <div class="cost-item">
-            <div class="cost-value dollar" id="val-gas-cost">--</div>
-            <div class="cost-label">Cost of LNG Not Produced</div>
+        <div class="og-column">
+            <div class="cost-item">
+                <div class="cost-value oil" id="val-gas-pct">--</div>
+                <div class="cost-label">Yearly Natural Gas Production Reduced</div>
+            </div>
+            <div class="cost-item">
+                <div class="cost-value oil" id="val-gas-tonnes">--</div>
+                <div class="cost-label">Metric Tonnes of LNG Not Produced</div>
+            </div>
+            <div class="cost-item">
+                <div class="cost-value dollar" id="val-gas-cost">--</div>
+                <div class="cost-label">Cost of LNG Not Produced</div>
+            </div>
         </div>
     </div>
 
-    <div class="section-divider"></div>
+    <div class="cost-item full">
+        <div class="cost-value dollar" id="val-oil-gas-total-cost">--</div>
+        <div class="cost-label">Total Cost of Oil &amp; Gas Not Produced</div>
+    </div>
 
-    <!-- Fertilizer -->
+    <a class="next-link" onclick="document.getElementById('section-fertilizer').scrollIntoView({behavior:'smooth'})">
+        Fertilizer<span class="next-arrow">&#9662;</span>
+    </a>
+</div>
+
+<!-- Section 2: Fertilizer -->
+<div class="cost-section" id="section-fertilizer">
+    <a class="prev-link" onclick="document.getElementById('section-oil-gas').scrollIntoView({behavior:'smooth'})">
+        <span class="prev-arrow">&#9652;</span>Oil &amp; Gas
+    </a>
+
     <div class="section-title">Fertilizer</div>
     <div class="cost-grid">
         <div class="cost-item">
             <div class="cost-value urea" id="val-urea">--</div>
             <div class="cost-label">Metric Tonnes of Urea Not Produced</div>
-        </div>
-        <div class="cost-item">
-            <div class="cost-value phosphate" id="val-phos">--</div>
-            <div class="cost-label">Metric Tonnes of Phosphate Not Produced</div>
-        </div>
-        <div class="cost-item full">
-            <div class="cost-value sulfur" id="val-sulfur">--</div>
-            <div class="cost-label">Metric Tonnes of Sulfur Not Produced</div>
-        </div>
-        <div class="cost-item">
             <div class="cost-value dollar" id="val-urea-cost">--</div>
             <div class="cost-label">Cost of Urea Not Produced</div>
         </div>
         <div class="cost-item">
+            <div class="cost-value phosphate" id="val-phos">--</div>
+            <div class="cost-label">Metric Tonnes of Phosphate Not Produced</div>
             <div class="cost-value dollar" id="val-phos-cost">--</div>
             <div class="cost-label">Cost of Phosphates (DAP) Not Produced</div>
         </div>
         <div class="cost-item full">
+            <div class="cost-value sulfur" id="val-sulfur">--</div>
+            <div class="cost-label">Metric Tonnes of Sulfur Not Produced</div>
             <div class="cost-value dollar" id="val-sulfur-cost">--</div>
             <div class="cost-label">Cost of Sulfur Not Produced</div>
         </div>
     </div>
 
-    <div class="section-divider"></div>
+    <div class="cost-item full">
+        <div class="cost-value dollar" id="val-fert-total-cost">--</div>
+        <div class="cost-label">Total Cost of Fertilizer Not Produced</div>
+    </div>
 
-    <!-- Environmental -->
+    <a class="next-link" onclick="document.getElementById('section-environmental').scrollIntoView({behavior:'smooth'})">
+        Environmental Impact<span class="next-arrow">&#9662;</span>
+    </a>
+</div>
+
+<!-- Section 3: Environmental -->
+<div class="cost-section" id="section-environmental">
+    <a class="prev-link" onclick="document.getElementById('section-fertilizer').scrollIntoView({behavior:'smooth'})">
+        <span class="prev-arrow">&#9652;</span>Fertilizer
+    </a>
+
     <div class="section-title">Environmental Impact</div>
     <div class="cost-grid">
         <div class="cost-item">
             <div class="cost-value env" id="val-env-co2-oil">--</div>
             <div class="cost-label">Kg of CO2 from Oil Not Produced</div>
+            <div class="cost-value dollar negative" id="val-env-cost-oil">--</div>
+            <div class="cost-label">Monetized CO2 Impact (Oil)</div>
         </div>
         <div class="cost-item">
             <div class="cost-value env" id="val-env-co2-lng">--</div>
             <div class="cost-label">Kg of CO2 from LNG Not Produced</div>
+            <div class="cost-value dollar negative" id="val-env-cost-lng">--</div>
+            <div class="cost-label">Monetized CO2 Impact (LNG)</div>
         </div>
         <div class="cost-item full">
             <div class="cost-value env" id="val-env-co2-total">--</div>
             <div class="cost-label">Total Kg of CO2 Not Produced</div>
+            <div class="cost-value dollar negative" id="val-env-cost-total">--</div>
+            <div class="cost-label">Total Monetized CO2 Impact</div>
         </div>
+    </div>
+
+    <a class="next-link" onclick="document.getElementById('section-net-impact').scrollIntoView({behavior:'smooth'})">
+        Net Economic Impact<span class="next-arrow">&#9662;</span>
+    </a>
+</div>
+
+<!-- Section 4: Net Economic Impact -->
+<div class="cost-section" id="section-net-impact">
+    <a class="prev-link" onclick="document.getElementById('section-environmental').scrollIntoView({behavior:'smooth'})">
+        <span class="prev-arrow">&#9652;</span>Environmental Impact
+    </a>
+
+    <div class="section-title">Net Economic Impact</div>
+
+    <div class="cost-grid">
+        <div class="cost-item">
+            <div class="cost-value dollar" id="val-net-oil-gas">--</div>
+            <div class="cost-label">Total Cost of Oil &amp; Gas Not Produced</div>
+        </div>
+        <div class="cost-item">
+            <div class="cost-value dollar" id="val-net-fert">--</div>
+            <div class="cost-label">Total Cost of Fertilizer Not Produced</div>
+        </div>
+    </div>
+
+    <div class="cost-item full">
+        <div class="cost-value dollar" id="val-net-stranded">--</div>
+        <div class="cost-label">Total Cost of Stranded Physical Assets</div>
+    </div>
+
+    <div class="cost-item full">
+        <div class="cost-value dollar negative" id="val-net-env">--</div>
+        <div class="cost-label">Total Monetized CO2 Impact</div>
+    </div>
+
+    <div class="section-divider-wide"></div>
+
+    <div class="cost-item full">
+        <div class="cost-value dollar net" id="val-net-total">--</div>
+        <div class="cost-label">Net Economic Impact</div>
     </div>
 
     <div class="assumptions-section">
@@ -480,6 +653,7 @@
                 <li>Natural Gas: <span id="a-gas-prod">500</span>M metric tonnes/year, <span id="a-gas-red">20</span>% transits the strait.</li>
                 <li>Brent Crude price: $<span id="a-brent-price">70</span>/bbl.</li>
                 <li>LNG price: $<span id="a-lng-price">10</span>/MMBtu (1 tonne LNG ≈ 52 MMBtu).</li>
+                <li>Monetized CO2: $<span id="a-co2-price">190</span>/tonne (social cost of carbon).</li>
                 <li>CO2 (Oil): <span id="a-co2">430</span> kg of CO2 produced per barrel of oil.</li>
                 <li>CO2 (LNG): Burning 1 metric tonne of LNG releases roughly <span id="a-co2-lng">2.76</span> tonnes of CO2.</li>
                 <li>Urea: <span id="a-urea-prod">190</span>M tonnes/year, <span id="a-urea-red">32.5</span>% transits the strait, $<span id="a-urea-price">700</span>/tonne.</li>
@@ -561,6 +735,11 @@
             <input class="setting-input" id="s-co2-lng" type="number" step="0.01" min="0.01">
             <div class="setting-hint">Default: 2.76 tonnes</div>
         </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-co2-price">Social Cost of Carbon ($/tonne CO2)</label>
+            <input class="setting-input" id="s-co2-price" type="number" step="1" min="1">
+            <div class="setting-hint">Default: $190</div>
+        </div>
 
         <div class="settings-section-label fert">Fertilizer</div>
 
@@ -635,6 +814,7 @@
         sulfurProd: 75,      // million tonnes/year
         sulfurRed: 45,       // percent
         sulfurPrice: 135,    // $/metric tonne
+        co2Price: 190,       // $/tonne CO2 (social cost of carbon)
     };
 
     // Active values
@@ -686,6 +866,7 @@
         document.getElementById('a-gas-red').textContent = v.gasRed;
         document.getElementById('a-brent-price').textContent = v.brentPrice;
         document.getElementById('a-lng-price').textContent = v.lngPrice;
+        document.getElementById('a-co2-price').textContent = v.co2Price;
         document.getElementById('a-co2').textContent = v.co2;
         document.getElementById('a-co2-lng').textContent = v.co2Lng;
         document.getElementById('a-urea-prod').textContent = v.ureaProd;
@@ -745,6 +926,7 @@
         const gasCost = gasTonnes * lngCostPerTonne;
         document.getElementById('val-oil-cost').textContent = fmtDollar(oilCost);
         document.getElementById('val-gas-cost').textContent = fmtDollar(gasCost);
+        document.getElementById('val-oil-gas-total-cost').textContent = fmtDollar(oilCost + gasCost);
 
         // Environmental
         const co2OilKg = oilBarrels * v.co2;
@@ -753,6 +935,14 @@
         document.getElementById('val-env-co2-oil').textContent = fmt(co2OilKg);
         document.getElementById('val-env-co2-lng').textContent = fmt(co2LngKg);
         document.getElementById('val-env-co2-total').textContent = fmt(co2TotalKg);
+
+        // Monetized environmental impact (negative — CO2 not emitted is a "savings")
+        const co2OilTonnes = co2OilKg / 1000;
+        const co2LngTonnes = co2LngKg / 1000;
+        const co2TotalTonnes = co2TotalKg / 1000;
+        document.getElementById('val-env-cost-oil').textContent = '-' + fmtDollar(co2OilTonnes * v.co2Price);
+        document.getElementById('val-env-cost-lng').textContent = '-' + fmtDollar(co2LngTonnes * v.co2Price);
+        document.getElementById('val-env-cost-total').textContent = '-' + fmtDollar(co2TotalTonnes * v.co2Price);
 
         // Fertilizer
         const ureaTonnes = Math.floor(days * (v.ureaProd * 1e6 / 365) * (v.ureaRed / 100));
@@ -769,6 +959,27 @@
         document.getElementById('val-urea-cost').textContent = fmtDollar(ureaCost);
         document.getElementById('val-phos-cost').textContent = fmtDollar(phosCost);
         document.getElementById('val-sulfur-cost').textContent = fmtDollar(sulfurCost);
+        document.getElementById('val-fert-total-cost').textContent = fmtDollar(ureaCost + phosCost + sulfurCost);
+
+        // Net Economic Impact
+        const totalOilGas = oilCost + gasCost;
+        const totalFert = ureaCost + phosCost + sulfurCost;
+        const totalEnv = co2TotalTonnes * v.co2Price;  // positive number, displayed as negative
+        const netImpact = totalOilGas + totalFert - totalEnv;
+
+        document.getElementById('val-net-oil-gas').textContent = fmtDollar(totalOilGas);
+        document.getElementById('val-net-fert').textContent = fmtDollar(totalFert);
+        document.getElementById('val-net-stranded').textContent = fmtDollar(totalOilGas + totalFert);
+        document.getElementById('val-net-env').textContent = '-' + fmtDollar(totalEnv);
+
+        const netEl = document.getElementById('val-net-total');
+        if (netImpact >= 0) {
+            netEl.textContent = fmtDollar(netImpact);
+            netEl.classList.remove('negative');
+        } else {
+            netEl.textContent = '-' + fmtDollar(Math.abs(netImpact));
+            netEl.classList.add('negative');
+        }
     }
 
     // Settings panel
@@ -784,6 +995,7 @@
         document.getElementById('s-sulfur-price').value = v.sulfurPrice;
         document.getElementById('s-co2').value = v.co2;
         document.getElementById('s-co2-lng').value = v.co2Lng;
+        document.getElementById('s-co2-price').value = v.co2Price;
         document.getElementById('s-urea-prod').value = v.ureaProd;
         document.getElementById('s-urea-red').value = v.ureaRed;
         document.getElementById('s-phos-prod').value = v.phosProd;
@@ -808,6 +1020,7 @@
         v.lngPrice = parseFloat(document.getElementById('s-lng-price').value) || D.lngPrice;
         v.co2 = parseFloat(document.getElementById('s-co2').value) || D.co2;
         v.co2Lng = parseFloat(document.getElementById('s-co2-lng').value) || D.co2Lng;
+        v.co2Price = parseFloat(document.getElementById('s-co2-price').value) || D.co2Price;
         v.ureaProd = parseFloat(document.getElementById('s-urea-prod').value) || D.ureaProd;
         v.ureaRed = parseFloat(document.getElementById('s-urea-red').value) || D.ureaRed;
         v.ureaPrice = parseFloat(document.getElementById('s-urea-price').value) || D.ureaPrice;
