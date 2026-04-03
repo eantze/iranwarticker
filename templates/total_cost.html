@@ -107,6 +107,14 @@
         word-break: break-word;
     }
 
+    .cost-value.dollar {
+        color: #00ffc8;
+        font-size: 1.8rem;
+        text-shadow:
+            0 0 12px rgba(0, 255, 200, 0.8),
+            0 0 25px rgba(0, 255, 200, 0.5);
+    }
+
     .cost-value.oil {
         text-shadow:
             0 0 10px rgba(0, 255, 200, 0.8),
@@ -402,6 +410,45 @@
             <div class="cost-value oil" id="val-gas-tonnes">--</div>
             <div class="cost-label">Metric Tonnes of Natural Gas Not Produced</div>
         </div>
+        <div class="cost-item">
+            <div class="cost-value dollar" id="val-oil-cost">--</div>
+            <div class="cost-label">Cost of Oil Not Produced</div>
+        </div>
+        <div class="cost-item">
+            <div class="cost-value dollar" id="val-gas-cost">--</div>
+            <div class="cost-label">Cost of LNG Not Produced</div>
+        </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Fertilizer -->
+    <div class="section-title">Fertilizer</div>
+    <div class="cost-grid">
+        <div class="cost-item">
+            <div class="cost-value urea" id="val-urea">--</div>
+            <div class="cost-label">Metric Tonnes of Urea Not Produced</div>
+        </div>
+        <div class="cost-item">
+            <div class="cost-value phosphate" id="val-phos">--</div>
+            <div class="cost-label">Metric Tonnes of Phosphate Not Produced</div>
+        </div>
+        <div class="cost-item full">
+            <div class="cost-value sulfur" id="val-sulfur">--</div>
+            <div class="cost-label">Metric Tonnes of Sulfur Not Produced</div>
+        </div>
+        <div class="cost-item">
+            <div class="cost-value dollar" id="val-urea-cost">--</div>
+            <div class="cost-label">Cost of Urea Not Produced</div>
+        </div>
+        <div class="cost-item">
+            <div class="cost-value dollar" id="val-phos-cost">--</div>
+            <div class="cost-label">Cost of Phosphates (DAP) Not Produced</div>
+        </div>
+        <div class="cost-item full">
+            <div class="cost-value dollar" id="val-sulfur-cost">--</div>
+            <div class="cost-label">Cost of Sulfur Not Produced</div>
+        </div>
     </div>
 
     <div class="section-divider"></div>
@@ -423,25 +470,6 @@
         </div>
     </div>
 
-    <div class="section-divider"></div>
-
-    <!-- Fertilizer -->
-    <div class="section-title">Fertilizer</div>
-    <div class="cost-grid">
-        <div class="cost-item">
-            <div class="cost-value urea" id="val-urea">--</div>
-            <div class="cost-label">Metric Tonnes of Urea Not Produced</div>
-        </div>
-        <div class="cost-item">
-            <div class="cost-value phosphate" id="val-phos">--</div>
-            <div class="cost-label">Metric Tonnes of Phosphate Not Produced</div>
-        </div>
-        <div class="cost-item full">
-            <div class="cost-value sulfur" id="val-sulfur">--</div>
-            <div class="cost-label">Metric Tonnes of Sulfur Not Produced</div>
-        </div>
-    </div>
-
     <div class="assumptions-section">
         <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
             &#9662; assumptions
@@ -450,11 +478,13 @@
             <ul>
                 <li>Oil: <span id="a-oil-prod">36.5</span> billion barrels/year, <span id="a-oil-red">20</span>% transits the strait.</li>
                 <li>Natural Gas: <span id="a-gas-prod">500</span>M metric tonnes/year, <span id="a-gas-red">20</span>% transits the strait.</li>
+                <li>Brent Crude price: $<span id="a-brent-price">70</span>/bbl.</li>
+                <li>LNG price: $<span id="a-lng-price">10</span>/MMBtu (1 tonne LNG ≈ 52 MMBtu).</li>
                 <li>CO2 (Oil): <span id="a-co2">430</span> kg of CO2 produced per barrel of oil.</li>
                 <li>CO2 (LNG): Burning 1 metric tonne of LNG releases roughly <span id="a-co2-lng">2.76</span> tonnes of CO2.</li>
-                <li>Urea: <span id="a-urea-prod">190</span>M tonnes/year, <span id="a-urea-red">32.5</span>% transits the strait.</li>
-                <li>Phosphates: <span id="a-phos-prod">237</span>M tonnes/year, <span id="a-phos-red">20</span>% from the region.</li>
-                <li>Sulfur: <span id="a-sulfur-prod">75</span>M tonnes/year, <span id="a-sulfur-red">45</span>% transits the strait.</li>
+                <li>Urea: <span id="a-urea-prod">190</span>M tonnes/year, <span id="a-urea-red">32.5</span>% transits the strait, $<span id="a-urea-price">700</span>/tonne.</li>
+                <li>Phosphates: <span id="a-phos-prod">237</span>M tonnes/year, <span id="a-phos-red">20</span>% from the region, $<span id="a-phos-price">725</span>/tonne.</li>
+                <li>Sulfur: <span id="a-sulfur-prod">75</span>M tonnes/year, <span id="a-sulfur-red">45</span>% transits the strait, $<span id="a-sulfur-price">135</span>/tonne.</li>
             </ul>
         </div>
     </div>
@@ -489,6 +519,34 @@
             <label class="setting-label" for="s-gas-red">Natural Gas Reduction (%)</label>
             <input class="setting-input" id="s-gas-red" type="number" step="0.1" min="0.1" max="100">
             <div class="setting-hint">Default: 20%</div>
+        </div>
+
+        <div class="settings-section-label" style="color: rgba(0, 255, 200, 0.7);">Commodity Prices</div>
+
+        <div class="setting-group">
+            <label class="setting-label" for="s-brent-price">Brent Crude Oil Price ($/bbl)</label>
+            <input class="setting-input" id="s-brent-price" type="number" step="0.01" min="0.01">
+            <div class="setting-hint">Default: live from Yahoo Finance</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-lng-price">LNG Price ($/MMBtu)</label>
+            <input class="setting-input" id="s-lng-price" type="number" step="0.01" min="0.01">
+            <div class="setting-hint">Default: $10/MMBtu (1 tonne ≈ 52 MMBtu)</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-urea-price">Urea Price ($/Metric Tonne)</label>
+            <input class="setting-input" id="s-urea-price" type="number" step="1" min="1">
+            <div class="setting-hint">Default: $700</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-phos-price">Phosphate (DAP) Price ($/Metric Tonne)</label>
+            <input class="setting-input" id="s-phos-price" type="number" step="1" min="1">
+            <div class="setting-hint">Default: $725</div>
+        </div>
+        <div class="setting-group">
+            <label class="setting-label" for="s-sulfur-price">Sulfur Price ($/Metric Tonne)</label>
+            <input class="setting-input" id="s-sulfur-price" type="number" step="1" min="1">
+            <div class="setting-hint">Default: $135</div>
         </div>
 
         <div class="settings-section-label env">Environmental</div>
@@ -565,21 +623,32 @@
         gasRed: 20,          // percent
         co2: 430,            // kg CO2 per barrel
         co2Lng: 2.76,        // tonnes CO2 per tonne LNG
+        brentPrice: 70,      // $/barrel (overridden by live data)
+        lngPrice: 10,        // $/MMBtu
+        lngMmBtuPerTonne: 52, // 1 metric tonne LNG ≈ 52 MMBtu
         ureaProd: 190,       // million tonnes/year
         ureaRed: 32.5,       // percent
+        ureaPrice: 700,      // $/metric tonne
         phosProd: 237,       // million tonnes/year
         phosRed: 20,         // percent
+        phosPrice: 725,      // $/metric tonne
         sulfurProd: 75,      // million tonnes/year
         sulfurRed: 45,       // percent
+        sulfurPrice: 135,    // $/metric tonne
     };
 
     // Active values
-    let v = { ...D };
+    let v = { ...D, _brentCustomized: false };
 
     function loadSettings() {
         try {
             const saved = localStorage.getItem('total_cost_settings');
-            if (saved) Object.assign(v, JSON.parse(saved));
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // If brentPrice is in saved settings, user explicitly customized it
+                if (parsed.brentPrice) v._brentCustomized = true;
+                Object.assign(v, parsed);
+            }
         } catch (e) {}
         // Shared strait date
         try {
@@ -591,7 +660,11 @@
     }
 
     function saveSettings() {
-        localStorage.setItem('total_cost_settings', JSON.stringify(v));
+        const toSave = { ...v };
+        // Don't persist brentPrice unless user explicitly set it — live data should always override
+        if (!v._brentCustomized) delete toSave.brentPrice;
+        delete toSave._brentCustomized;  // internal flag
+        localStorage.setItem('total_cost_settings', JSON.stringify(toSave));
         localStorage.setItem('shared_strait_date', v.startDate);
     }
 
@@ -599,19 +672,31 @@
         return Math.floor(n).toLocaleString('en-US');
     }
 
+    function fmtDollar(n) {
+        if (n >= 1e12) return '$' + (n / 1e12).toFixed(2) + ' Trillion';
+        if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + ' Billion';
+        if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + ' Million';
+        return '$' + Math.floor(n).toLocaleString('en-US');
+    }
+
     function updateAssumptions() {
         document.getElementById('a-oil-prod').textContent = v.oilProd;
         document.getElementById('a-oil-red').textContent = v.oilRed;
         document.getElementById('a-gas-prod').textContent = v.gasProd;
         document.getElementById('a-gas-red').textContent = v.gasRed;
+        document.getElementById('a-brent-price').textContent = v.brentPrice;
+        document.getElementById('a-lng-price').textContent = v.lngPrice;
         document.getElementById('a-co2').textContent = v.co2;
         document.getElementById('a-co2-lng').textContent = v.co2Lng;
         document.getElementById('a-urea-prod').textContent = v.ureaProd;
         document.getElementById('a-urea-red').textContent = v.ureaRed;
+        document.getElementById('a-urea-price').textContent = v.ureaPrice;
         document.getElementById('a-phos-prod').textContent = v.phosProd;
         document.getElementById('a-phos-red').textContent = v.phosRed;
+        document.getElementById('a-phos-price').textContent = v.phosPrice;
         document.getElementById('a-sulfur-prod').textContent = v.sulfurProd;
         document.getElementById('a-sulfur-red').textContent = v.sulfurRed;
+        document.getElementById('a-sulfur-price').textContent = v.sulfurPrice;
     }
 
     function recalculate() {
@@ -654,6 +739,13 @@
         document.getElementById('val-gas-pct').textContent = gasPct.toFixed(4) + '%';
         document.getElementById('val-gas-tonnes').textContent = fmt(gasTonnes);
 
+        // Oil & Gas costs
+        const oilCost = oilBarrels * v.brentPrice;
+        const lngCostPerTonne = v.lngPrice * v.lngMmBtuPerTonne;
+        const gasCost = gasTonnes * lngCostPerTonne;
+        document.getElementById('val-oil-cost').textContent = fmtDollar(oilCost);
+        document.getElementById('val-gas-cost').textContent = fmtDollar(gasCost);
+
         // Environmental
         const co2OilKg = oilBarrels * v.co2;
         const co2LngKg = Math.floor(gasTonnes * v.co2Lng * 1000);
@@ -669,6 +761,14 @@
         document.getElementById('val-urea').textContent = fmt(ureaTonnes);
         document.getElementById('val-phos').textContent = fmt(phosTonnes);
         document.getElementById('val-sulfur').textContent = fmt(sulfurTonnes);
+
+        // Fertilizer costs
+        const ureaCost = ureaTonnes * v.ureaPrice;
+        const phosCost = phosTonnes * v.phosPrice;
+        const sulfurCost = sulfurTonnes * v.sulfurPrice;
+        document.getElementById('val-urea-cost').textContent = fmtDollar(ureaCost);
+        document.getElementById('val-phos-cost').textContent = fmtDollar(phosCost);
+        document.getElementById('val-sulfur-cost').textContent = fmtDollar(sulfurCost);
     }
 
     // Settings panel
@@ -677,6 +777,11 @@
         document.getElementById('s-oil-red').value = v.oilRed;
         document.getElementById('s-gas-prod').value = v.gasProd;
         document.getElementById('s-gas-red').value = v.gasRed;
+        document.getElementById('s-brent-price').value = v.brentPrice;
+        document.getElementById('s-lng-price').value = v.lngPrice;
+        document.getElementById('s-urea-price').value = v.ureaPrice;
+        document.getElementById('s-phos-price').value = v.phosPrice;
+        document.getElementById('s-sulfur-price').value = v.sulfurPrice;
         document.getElementById('s-co2').value = v.co2;
         document.getElementById('s-co2-lng').value = v.co2Lng;
         document.getElementById('s-urea-prod').value = v.ureaProd;
@@ -698,14 +803,20 @@
         v.oilRed = parseFloat(document.getElementById('s-oil-red').value) || D.oilRed;
         v.gasProd = parseFloat(document.getElementById('s-gas-prod').value) || D.gasProd;
         v.gasRed = parseFloat(document.getElementById('s-gas-red').value) || D.gasRed;
+        v.brentPrice = parseFloat(document.getElementById('s-brent-price').value) || D.brentPrice;
+        v._brentCustomized = true;
+        v.lngPrice = parseFloat(document.getElementById('s-lng-price').value) || D.lngPrice;
         v.co2 = parseFloat(document.getElementById('s-co2').value) || D.co2;
         v.co2Lng = parseFloat(document.getElementById('s-co2-lng').value) || D.co2Lng;
         v.ureaProd = parseFloat(document.getElementById('s-urea-prod').value) || D.ureaProd;
         v.ureaRed = parseFloat(document.getElementById('s-urea-red').value) || D.ureaRed;
+        v.ureaPrice = parseFloat(document.getElementById('s-urea-price').value) || D.ureaPrice;
         v.phosProd = parseFloat(document.getElementById('s-phos-prod').value) || D.phosProd;
         v.phosRed = parseFloat(document.getElementById('s-phos-red').value) || D.phosRed;
+        v.phosPrice = parseFloat(document.getElementById('s-phos-price').value) || D.phosPrice;
         v.sulfurProd = parseFloat(document.getElementById('s-sulfur-prod').value) || D.sulfurProd;
         v.sulfurRed = parseFloat(document.getElementById('s-sulfur-red').value) || D.sulfurRed;
+        v.sulfurPrice = parseFloat(document.getElementById('s-sulfur-price').value) || D.sulfurPrice;
         const newStart = document.getElementById('s-start-date').value;
         if (newStart) v.startDate = newStart;
 
@@ -716,7 +827,7 @@
     }
 
     function resetSettings() {
-        Object.assign(v, { ...D });
+        Object.assign(v, { ...D, _brentCustomized: false });
         document.getElementById('input-end-date').value = D.endDate;
         localStorage.removeItem('total_cost_settings');
         updateAssumptions();
@@ -730,5 +841,21 @@
 
     loadSettings();
     recalculate();
+
+    // Fetch live Brent price — always use live unless user explicitly customized
+    fetch('/api/prices')
+        .then(r => r.json())
+        .then(data => {
+            if (data.brent && data.brent.price != null) {
+                const livePrice = Math.round(data.brent.price * 100) / 100;
+                D.brentPrice = livePrice;
+                if (!v._brentCustomized) {
+                    v.brentPrice = livePrice;
+                    updateAssumptions();
+                    recalculate();
+                }
+            }
+        })
+        .catch(() => {});
 </script>
 {% endblock %}
