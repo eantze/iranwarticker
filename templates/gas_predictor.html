@@ -250,12 +250,21 @@
         margin-bottom: 0.4rem;
     }
 
-    .result-interval {
-        color: rgba(255, 255, 255, 0.4);
+    .result-interval-label {
+        color: rgba(255, 255, 255, 0.6);
         font-family: 'Courier New', monospace;
-        font-size: 0.6rem;
+        font-size: 0.75rem;
         text-align: center;
-        letter-spacing: 0.05em;
+        margin-top: 0.3rem;
+    }
+
+    .result-interval {
+        color: #00ff88;
+        font-family: 'Courier New', monospace;
+        font-size: 1.1rem;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+        text-align: center;
     }
 
     /* AAA current price */
@@ -476,6 +485,7 @@
         <div class="calc-result visible" id="calc-result">
             <div class="result-main" id="result-value">--</div>
             <div class="result-detail" id="result-detail">--</div>
+            <div class="result-interval-label">95% interval:</div>
             <div class="result-interval" id="result-interval">--</div>
         </div>
         <div class="calc-inputs">
@@ -850,7 +860,7 @@
             ' $/gal (' + source + ')';
 
         document.getElementById('result-interval').textContent =
-            '95% interval: $' + low.toFixed(3) + ' to $' + high.toFixed(3) + '/gal';
+            '$' + low.toFixed(3) + ' to $' + high.toFixed(3) + '/gal';
     }
 
     // Auto-predict on input change

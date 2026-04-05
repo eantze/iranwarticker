@@ -77,10 +77,10 @@
     }
 
     .section-title {
-        color: rgba(255, 255, 255, 0.5);
+        color: #ffffff;
         font-family: 'Courier New', monospace;
-        font-size: 0.7rem;
-        letter-spacing: 0.2em;
+        font-size: 1.1rem;
+        letter-spacing: 0.15em;
         text-transform: uppercase;
     }
 
@@ -324,6 +324,67 @@
     .settings-section-label.env { color: rgba(100, 220, 100, 0.7); }
     .settings-section-label.fert { color: rgba(255, 200, 50, 0.7); }
 
+    .env-toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 40px;
+        height: 22px;
+        flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 22px;
+        transition: background 0.3s;
+    }
+
+    .toggle-slider::before {
+        content: '';
+        position: absolute;
+        height: 16px;
+        width: 16px;
+        left: 3px;
+        bottom: 3px;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        transition: transform 0.3s, background 0.3s;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+        background: rgba(100, 220, 100, 0.4);
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+        transform: translateX(18px);
+        background: #64dc64;
+    }
+
+    .env-settings-fields {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: max-height 0.4s ease, opacity 0.3s ease;
+    }
+
+    .env-settings-fields.open {
+        max-height: 300px;
+        opacity: 1;
+    }
+
     .setting-group { margin-bottom: 1.2rem; }
 
     .setting-label {
@@ -485,6 +546,26 @@
         </div>
     </div>
 
+    <div class="assumptions-section">
+        <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
+            &#9662; assumptions
+        </div>
+        <div class="assumptions-content" id="assumptions">
+            <ul>
+                <li>Oil: <span id="a-oil-prod">36.5</span> billion barrels/year, <span id="a-oil-red">20</span>% transits the strait.</li>
+                <li>Natural Gas: <span id="a-gas-prod">500</span>M metric tonnes/year, <span id="a-gas-red">20</span>% transits the strait.</li>
+                <li>Brent Crude price: $<span id="a-brent-price">70</span>/bbl.</li>
+                <li>LNG price: $<span id="a-lng-price">10</span>/MMBtu (1 tonne LNG ≈ 52 MMBtu).</li>
+                <li>Monetized CO2: $<span id="a-co2-price">190</span>/tonne (social cost of carbon).</li>
+                <li>CO2 (Oil): <span id="a-co2">430</span> kg of CO2 produced per barrel of oil.</li>
+                <li>CO2 (LNG): Burning 1 metric tonne of LNG releases roughly <span id="a-co2-lng">2.76</span> tonnes of CO2.</li>
+                <li>Urea: <span id="a-urea-prod">190</span>M tonnes/year, <span id="a-urea-red">32.5</span>% transits the strait, $<span id="a-urea-price">700</span>/tonne.</li>
+                <li>Phosphates: <span id="a-phos-prod">237</span>M tonnes/year, <span id="a-phos-red">20</span>% from the region, $<span id="a-phos-price">725</span>/tonne.</li>
+                <li>Sulfur: <span id="a-sulfur-prod">75</span>M tonnes/year, <span id="a-sulfur-red">45</span>% transits the strait, $<span id="a-sulfur-price">135</span>/tonne.</li>
+            </ul>
+        </div>
+    </div>
+
     <!-- Date picker -->
     <div class="date-control">
         <div class="date-label">Strait of Hormuz Traffic Returns to Normal</div>
@@ -569,8 +650,11 @@
         <div class="cost-label">Total Cost of Fertilizer Not Produced</div>
     </div>
 
-    <a class="next-link" onclick="document.getElementById('section-environmental').scrollIntoView({behavior:'smooth'})">
+    <a class="next-link" id="fert-next-env" onclick="document.getElementById('section-environmental').scrollIntoView({behavior:'smooth'})">
         Environmental Impact<span class="next-arrow">&#9662;</span>
+    </a>
+    <a class="next-link" id="fert-next-net" style="display:none" onclick="document.getElementById('section-net-impact').scrollIntoView({behavior:'smooth'})">
+        Net Economic Impact<span class="next-arrow">&#9662;</span>
     </a>
 </div>
 
@@ -609,8 +693,11 @@
 
 <!-- Section 4: Net Economic Impact -->
 <div class="cost-section" id="section-net-impact">
-    <a class="prev-link" onclick="document.getElementById('section-environmental').scrollIntoView({behavior:'smooth'})">
+    <a class="prev-link" id="net-prev-env" onclick="document.getElementById('section-environmental').scrollIntoView({behavior:'smooth'})">
         <span class="prev-arrow">&#9652;</span>Environmental Impact
+    </a>
+    <a class="prev-link" id="net-prev-fert" style="display:none" onclick="document.getElementById('section-fertilizer').scrollIntoView({behavior:'smooth'})">
+        <span class="prev-arrow">&#9652;</span>Fertilizer
     </a>
 
     <div class="section-title">Net Economic Impact</div>
@@ -631,37 +718,19 @@
         <div class="cost-label">Total Cost of Stranded Physical Assets</div>
     </div>
 
-    <div class="cost-item full">
+    <div class="cost-item full" id="net-env-row">
         <div class="cost-value dollar negative" id="val-net-env">--</div>
         <div class="cost-label">Total Monetized CO2 Impact</div>
     </div>
 
-    <div class="section-divider-wide"></div>
+    <div class="section-divider-wide" id="net-divider"></div>
 
-    <div class="cost-item full">
+    <div class="cost-item full" id="net-total-row">
         <div class="cost-value dollar net" id="val-net-total">--</div>
         <div class="cost-label">Net Economic Impact</div>
     </div>
 
-    <div class="assumptions-section">
-        <div class="assumptions-toggle" onclick="document.getElementById('assumptions').classList.toggle('open')">
-            &#9662; assumptions
-        </div>
-        <div class="assumptions-content" id="assumptions">
-            <ul>
-                <li>Oil: <span id="a-oil-prod">36.5</span> billion barrels/year, <span id="a-oil-red">20</span>% transits the strait.</li>
-                <li>Natural Gas: <span id="a-gas-prod">500</span>M metric tonnes/year, <span id="a-gas-red">20</span>% transits the strait.</li>
-                <li>Brent Crude price: $<span id="a-brent-price">70</span>/bbl.</li>
-                <li>LNG price: $<span id="a-lng-price">10</span>/MMBtu (1 tonne LNG ≈ 52 MMBtu).</li>
-                <li>Monetized CO2: $<span id="a-co2-price">190</span>/tonne (social cost of carbon).</li>
-                <li>CO2 (Oil): <span id="a-co2">430</span> kg of CO2 produced per barrel of oil.</li>
-                <li>CO2 (LNG): Burning 1 metric tonne of LNG releases roughly <span id="a-co2-lng">2.76</span> tonnes of CO2.</li>
-                <li>Urea: <span id="a-urea-prod">190</span>M tonnes/year, <span id="a-urea-red">32.5</span>% transits the strait, $<span id="a-urea-price">700</span>/tonne.</li>
-                <li>Phosphates: <span id="a-phos-prod">237</span>M tonnes/year, <span id="a-phos-red">20</span>% from the region, $<span id="a-phos-price">725</span>/tonne.</li>
-                <li>Sulfur: <span id="a-sulfur-prod">75</span>M tonnes/year, <span id="a-sulfur-red">45</span>% transits the strait, $<span id="a-sulfur-price">135</span>/tonne.</li>
-            </ul>
-        </div>
-    </div>
+
 </div>
 
 <!-- Settings overlay -->
@@ -723,24 +792,6 @@
             <div class="setting-hint">Default: $135</div>
         </div>
 
-        <div class="settings-section-label env">Environmental</div>
-
-        <div class="setting-group">
-            <label class="setting-label" for="s-co2">CO2 per Barrel of Oil (kg)</label>
-            <input class="setting-input" id="s-co2" type="number" step="1" min="1">
-            <div class="setting-hint">Default: 430 kg</div>
-        </div>
-        <div class="setting-group">
-            <label class="setting-label" for="s-co2-lng">CO2 per Tonne of LNG (tonnes)</label>
-            <input class="setting-input" id="s-co2-lng" type="number" step="0.01" min="0.01">
-            <div class="setting-hint">Default: 2.76 tonnes</div>
-        </div>
-        <div class="setting-group">
-            <label class="setting-label" for="s-co2-price">Social Cost of Carbon ($/tonne CO2)</label>
-            <input class="setting-input" id="s-co2-price" type="number" step="1" min="1">
-            <div class="setting-hint">Default: $190</div>
-        </div>
-
         <div class="settings-section-label fert">Fertilizer</div>
 
         <div class="setting-group">
@@ -772,6 +823,33 @@
             <label class="setting-label" for="s-sulfur-red">Sulfur Reduction (%)</label>
             <input class="setting-input" id="s-sulfur-red" type="number" step="0.1" min="0.1" max="100">
             <div class="setting-hint">Default: 45%</div>
+        </div>
+
+        <div class="settings-section-label env env-toggle-row">
+            <span>Environmental</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="s-env-toggle" onchange="document.getElementById('env-settings-fields').classList.toggle('open', this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        <div class="setting-hint" style="margin-bottom: 0.5rem;">Include Environmental Offset</div>
+
+        <div class="env-settings-fields" id="env-settings-fields">
+            <div class="setting-group">
+                <label class="setting-label" for="s-co2">CO2 per Barrel of Oil (kg)</label>
+                <input class="setting-input" id="s-co2" type="number" step="1" min="1">
+                <div class="setting-hint">Default: 430 kg</div>
+            </div>
+            <div class="setting-group">
+                <label class="setting-label" for="s-co2-lng">CO2 per Tonne of LNG (tonnes)</label>
+                <input class="setting-input" id="s-co2-lng" type="number" step="0.01" min="0.01">
+                <div class="setting-hint">Default: 2.76 tonnes</div>
+            </div>
+            <div class="setting-group">
+                <label class="setting-label" for="s-co2-price">Social Cost of Carbon ($/tonne CO2)</label>
+                <input class="setting-input" id="s-co2-price" type="number" step="1" min="1">
+                <div class="setting-hint">Default: $190</div>
+            </div>
         </div>
 
         <div class="setting-group">
@@ -815,6 +893,7 @@
         sulfurRed: 45,       // percent
         sulfurPrice: 135,    // $/metric tonne
         co2Price: 190,       // $/tonne CO2 (social cost of carbon)
+        includeEnv: false,   // environmental offset toggle
     };
 
     // Active values
@@ -961,24 +1040,39 @@
         document.getElementById('val-sulfur-cost').textContent = fmtDollar(sulfurCost);
         document.getElementById('val-fert-total-cost').textContent = fmtDollar(ureaCost + phosCost + sulfurCost);
 
+        // Environmental toggle visibility
+        const envOn = v.includeEnv;
+        document.getElementById('section-environmental').style.display = envOn ? '' : 'none';
+        document.getElementById('fert-next-env').style.display = envOn ? '' : 'none';
+        document.getElementById('fert-next-net').style.display = envOn ? 'none' : '';
+        document.getElementById('net-prev-env').style.display = envOn ? '' : 'none';
+        document.getElementById('net-prev-fert').style.display = envOn ? 'none' : '';
+        document.getElementById('net-env-row').style.display = envOn ? '' : 'none';
+        document.getElementById('net-divider').style.display = envOn ? '' : 'none';
+        document.getElementById('net-total-row').style.display = envOn ? '' : 'none';
+
         // Net Economic Impact
         const totalOilGas = oilCost + gasCost;
         const totalFert = ureaCost + phosCost + sulfurCost;
-        const totalEnv = co2TotalTonnes * v.co2Price;  // positive number, displayed as negative
-        const netImpact = totalOilGas + totalFert - totalEnv;
+        const strandedTotal = totalOilGas + totalFert;
 
         document.getElementById('val-net-oil-gas').textContent = fmtDollar(totalOilGas);
         document.getElementById('val-net-fert').textContent = fmtDollar(totalFert);
-        document.getElementById('val-net-stranded').textContent = fmtDollar(totalOilGas + totalFert);
-        document.getElementById('val-net-env').textContent = '-' + fmtDollar(totalEnv);
+        document.getElementById('val-net-stranded').textContent = fmtDollar(strandedTotal);
 
-        const netEl = document.getElementById('val-net-total');
-        if (netImpact >= 0) {
-            netEl.textContent = fmtDollar(netImpact);
-            netEl.classList.remove('negative');
-        } else {
-            netEl.textContent = '-' + fmtDollar(Math.abs(netImpact));
-            netEl.classList.add('negative');
+        if (envOn) {
+            const totalEnv = co2TotalTonnes * v.co2Price;
+            const netImpact = strandedTotal - totalEnv;
+            document.getElementById('val-net-env').textContent = '-' + fmtDollar(totalEnv);
+
+            const netEl = document.getElementById('val-net-total');
+            if (netImpact >= 0) {
+                netEl.textContent = fmtDollar(netImpact);
+                netEl.classList.remove('negative');
+            } else {
+                netEl.textContent = '-' + fmtDollar(Math.abs(netImpact));
+                netEl.classList.add('negative');
+            }
         }
     }
 
@@ -996,6 +1090,8 @@
         document.getElementById('s-co2').value = v.co2;
         document.getElementById('s-co2-lng').value = v.co2Lng;
         document.getElementById('s-co2-price').value = v.co2Price;
+        document.getElementById('s-env-toggle').checked = v.includeEnv;
+        document.getElementById('env-settings-fields').classList.toggle('open', v.includeEnv);
         document.getElementById('s-urea-prod').value = v.ureaProd;
         document.getElementById('s-urea-red').value = v.ureaRed;
         document.getElementById('s-phos-prod').value = v.phosProd;
@@ -1021,6 +1117,7 @@
         v.co2 = parseFloat(document.getElementById('s-co2').value) || D.co2;
         v.co2Lng = parseFloat(document.getElementById('s-co2-lng').value) || D.co2Lng;
         v.co2Price = parseFloat(document.getElementById('s-co2-price').value) || D.co2Price;
+        v.includeEnv = document.getElementById('s-env-toggle').checked;
         v.ureaProd = parseFloat(document.getElementById('s-urea-prod').value) || D.ureaProd;
         v.ureaRed = parseFloat(document.getElementById('s-urea-red').value) || D.ureaRed;
         v.ureaPrice = parseFloat(document.getElementById('s-urea-price').value) || D.ureaPrice;
