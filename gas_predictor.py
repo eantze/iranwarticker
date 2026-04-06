@@ -183,8 +183,8 @@ def _compute_gas_predictor_data():
         "pred_interval_95": round(1.96 * std_resid, 4),
     }
 
-    # ---- Walk-forward backtest from Jan 2020 ----
-    BACKTEST_START = "2020-01-01"
+    # ---- Walk-forward backtest from test set start ----
+    BACKTEST_START = SPLIT_DATE
     backtest = merged[merged["date"] >= BACKTEST_START].copy()
 
     if len(backtest) > 1:
