@@ -483,6 +483,172 @@
         #chart { height: 320px; }
         .formula-text { font-size: 0.7rem; }
     }
+
+    /* ---- Predicted-vs-Current visualization card ---- */
+    .gt-card {
+        position: relative;
+        background: #1a1a2e;
+        border: 1px solid rgba(0, 212, 255, 0.15);
+        border-radius: 12px;
+        padding: 1.5rem 2rem 1.4rem;
+        box-shadow: 0 0 15px rgba(0, 212, 255, 0.08);
+        font-family: 'Courier New', monospace;
+        color: #e8eaee;
+    }
+    .gt-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+    }
+    .gt-header .left { color: rgba(0, 255, 136, 0.8); }
+    .gt-header .right { color: rgba(255, 255, 255, 0.4); }
+    .gt-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-top: 1.2rem;
+    }
+    .gt-stat { display: flex; flex-direction: column; gap: 0.25rem; }
+    .gt-stat.right { align-items: flex-end; text-align: right; }
+    .gt-stat-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+    }
+    .gt-stat-value {
+        font-size: 1.9rem;
+        font-weight: 600;
+        color: #ffffff;
+        letter-spacing: 0.01em;
+        line-height: 1.1;
+    }
+    .gt-stat-value .unit {
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.45);
+        font-weight: 400;
+        margin-left: 0.1rem;
+    }
+    .gt-stat-sub {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.45);
+        margin-top: 0.15rem;
+    }
+    .gt-stat-sub .arrow-up { color: #00e5a0; margin-right: 0.25rem; }
+    .gt-stat-sub .arrow-down { color: #ff4d6a; margin-right: 0.25rem; }
+    .gt-pred-change {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.45);
+        margin-top: 0.15rem;
+        letter-spacing: 0.04em;
+    }
+    .gt-pred-change .label { color: rgba(255, 255, 255, 0.45); margin-right: 0; }
+    .gt-pred-change .delta-tri { color: #00e5a0; font-size: 0.65rem; margin-left: 0.15rem; }
+
+    .gt-ci-area { position: relative; margin: 6rem 0 5rem; padding: 0 5rem; }
+    .gt-ci-track-wrap { position: relative; height: 2px; }
+    .gt-ci-track {
+        position: absolute; left: 0; right: 0; top: 0; height: 2px;
+        background: linear-gradient(90deg,
+            rgba(0, 229, 160, 0.25) 0%,
+            rgba(0, 229, 160, 0.55) 50%,
+            rgba(0, 229, 160, 0.25) 100%);
+        border-radius: 2px;
+    }
+    .gt-tick {
+        position: absolute; top: -6px; width: 1px; height: 14px;
+        background: rgba(0, 229, 160, 0.45);
+    }
+    .gt-bound {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.65rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+        white-space: nowrap;
+    }
+    .gt-bound.left { right: calc(100% + 0.6rem); text-align: right; }
+    .gt-bound.right { left: calc(100% + 0.6rem); text-align: left; }
+    .gt-bound-val {
+        display: block;
+        font-size: 1.05rem;
+        color: #00e5a0;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        margin-top: 0.15rem;
+        text-transform: none;
+    }
+
+    .gt-tag {
+        position: absolute;
+        transform: translateX(-50%);
+        padding: 0.5rem 0.85rem;
+        border-radius: 8px;
+        font-size: 0.65rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .gt-tag .val {
+        display: block;
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-top: 0.2rem;
+        letter-spacing: 0.01em;
+        text-transform: none;
+    }
+    .gt-tag .src {
+        display: block;
+        font-size: 0.55rem;
+        margin-top: 0.25rem;
+        letter-spacing: 0.1em;
+        color: rgba(255, 255, 255, 0.4);
+        text-transform: none;
+    }
+    .gt-tag.predicted {
+        bottom: calc(100% + 0.9rem);
+        background: rgba(0, 229, 160, 0.08);
+        border: 1px solid rgba(0, 229, 160, 0.5);
+        color: rgba(0, 229, 160, 0.9);
+        box-shadow: 0 0 24px rgba(0, 229, 160, 0.18);
+    }
+    .gt-tag.predicted .val { color: #00e5a0; }
+    .gt-tag.current {
+        top: calc(100% + 0.9rem);
+        background: rgba(79, 195, 247, 0.08);
+        border: 1px solid rgba(79, 195, 247, 0.5);
+        color: rgba(79, 195, 247, 0.9);
+        box-shadow: 0 0 24px rgba(79, 195, 247, 0.18);
+    }
+    .gt-tag.current .val { color: #4fc3f7; }
+    .gt-connector {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 1px;
+        background: currentColor;
+        opacity: 0.7;
+    }
+    .gt-connector.up { top: 100%; height: 0.9rem; color: #00e5a0; }
+    .gt-connector.down { bottom: 100%; height: 0.9rem; color: #4fc3f7; }
+
+    @media (max-width: 720px) {
+        .gt-card { padding: 1.2rem 1rem; }
+        .gt-stat-value { font-size: 1.4rem; }
+        .gt-ci-area { padding: 0 3.4rem; margin: 5.5rem 0 4rem; }
+        .gt-bound { font-size: 0.55rem; }
+        .gt-bound-val { font-size: 0.85rem; }
+        .gt-tag { padding: 0.35rem 0.6rem; font-size: 0.55rem; }
+        .gt-tag .val { font-size: 0.95rem; }
+        .gt-pred-change { font-size: 0.7rem; white-space: nowrap; }
+    }
 </style>
 {% endblock %}
 
@@ -499,40 +665,52 @@
         It has been <a href="https://www.youtube.com/watch?v=va6aSzJegBs" target="_blank" rel="noopener">stated by President Trump</a> that the United States does not need the Strait of Hormuz.  Our analysis shows that while the US may not get a large percentage of its oil from the strait, global oil prices have a close connection to the price of gasoline within the US.  The regression model below leverages FRED data on Brent Crude oil prices and Monthly Average Gasoline prices to predict the US National Average cost of gasoline.
     </p>
 
+    <!-- Predicted vs Current visualization -->
+    <div class="gt-card">
+        <div class="gt-header">
+            <div class="left">// PREDICTED_NATIONAL_AVG.GAS 95% CI</div>
+        </div>
+        <div class="gt-stats">
+            <div class="gt-stat">
+                <div class="gt-stat-label">Brent Crude</div>
+                <div class="gt-stat-value"><span id="gt-brent">--</span><span class="unit">/bbl</span></div>
+                <div class="gt-stat-sub" id="gt-brent-delta">&mdash;</div>
+            </div>
+            <div class="gt-stat right">
+                <div class="gt-stat-label">AAA Last Month</div>
+                <div class="gt-stat-value"><span id="gt-prev-gas">--</span><span class="unit">/gal</span></div>
+                <div class="gt-pred-change">
+                    <span class="label">est. <span class="delta-tri">&#9650;</span></span><span id="gt-pred-change-val">--</span>
+                </div>
+            </div>
+        </div>
+        <div class="gt-ci-area">
+            <div class="gt-ci-track-wrap">
+                <div class="gt-ci-track"></div>
+                <span class="gt-tick" style="left:0%"></span>
+                <span class="gt-tick" style="left:25%"></span>
+                <span class="gt-tick" style="left:50%"></span>
+                <span class="gt-tick" style="left:75%"></span>
+                <span class="gt-tick" style="left:100%"></span>
+                <div class="gt-bound left"><span class="gt-bound-val" id="gt-lower">--</span></div>
+                <div class="gt-bound right"><span class="gt-bound-val" id="gt-upper">--</span></div>
+                <div class="gt-tag predicted" id="gt-pred-tag">
+                    Predicted
+                    <span class="val" id="gt-pred-val">--</span>
+                    <span class="gt-connector up"></span>
+                </div>
+                <div class="gt-tag current" id="gt-current-tag">
+                    Current National Avg
+                    <span class="val" id="gt-current-val">--</span>
+                    <span class="src">gasprices.aaa.com</span>
+                    <span class="gt-connector down"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% if data.error %}
     <div class="error-banner">{{ data.error }}</div>
-    {% endif %}
-
-    <!-- Calculator (Predicted Price) -->
-    <div class="calculator-card">
-        <div class="calc-title">Predicted National Average Gas Price</div>
-        <div class="calc-result visible" id="calc-result">
-            <div class="result-main" id="result-value">--</div>
-            <div class="result-detail" id="result-detail">--</div>
-            <div class="result-interval-label">95% interval:</div>
-            <div class="result-interval" id="result-interval">--</div>
-        </div>
-        <div class="calc-inputs">
-            <div class="calc-group">
-                <label class="calc-label" for="calc-brent">Brent Crude Price ($/bbl)</label>
-                <input class="calc-input" id="calc-brent" type="number" step="0.01" value="{{ data.latest_brent }}">
-                <div class="calc-hint">Last known: ${{ data.latest_brent }}/bbl</div>
-            </div>
-            <div class="calc-group">
-                <label class="calc-label" for="calc-gas">Previous Monthly Average ($/gal)</label>
-                <input class="calc-input" id="calc-gas" type="number" step="0.001" value="{% if aaa %}{{ aaa.month_ago_regular }}{% else %}{{ data.latest_gas }}{% endif %}">
-                <div class="calc-hint">{% if aaa %}AAA month-ago avg: ${{ aaa.month_ago_regular }}/gal{% else %}Last known: ${{ data.latest_gas }}/gal{% endif %}</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- AAA Current National Average -->
-    {% if aaa %}
-    <div class="aaa-current">
-        <div class="aaa-current-label">Current National Average (Regular)</div>
-        <div class="aaa-current-price">${{ "%.3f"|format(aaa.current_regular) }}/gal</div>
-        <div class="aaa-current-source">Source: AAA &bull; gasprices.aaa.com</div>
-    </div>
     {% endif %}
 
     <!-- Live Brent Crude Chart -->
@@ -647,6 +825,7 @@
     const PREV_BRENT = {{ data.latest_brent }};
     const PREV_GAS = {% if aaa %}{{ aaa.month_ago_regular }}{% else %}{{ data.latest_gas }}{% endif %};
     const PREV_DELTA_GAS = {{ data.latest_delta_gas }};
+    const CURRENT_AAA = {% if aaa %}{{ aaa.current_regular }}{% else %}null{% endif %};
     const backtestData = {{ data.backtest_data | tojson }};
     const scatterData = {{ data.scatter_data | tojson }};
 
@@ -724,12 +903,9 @@
                 document.getElementById('brent-change').innerHTML =
                     `<span style="color:${color}">${arrow} ${change >= 0 ? '+' : ''}${Math.abs(change).toFixed(2)} (${pct})</span>`;
 
-                // Update calculator default to live price and re-predict
-                if (!userEdited) {
-                    liveBrentPrice = brent.price;
-                    document.getElementById('calc-brent').value = brent.price.toFixed(2);
-                    predict();
-                }
+                // Update live price and re-render the gt-card
+                liveBrentPrice = brent.price;
+                predict();
             }
 
             // Build SVG chart
@@ -856,46 +1032,48 @@
     // Refresh every 5 minutes
     setInterval(fetchBrentChart, 300000);
 
-    // Prediction calculator
-    let userEdited = false;
-    let liveBrentPrice = null;
+    // Prediction (drives the gt-card)
+    let liveBrentPrice = PREV_BRENT;
 
     function predict() {
-        const currentBrent = parseFloat(document.getElementById('calc-brent').value) || 0;
-        const currentGas = parseFloat(document.getElementById('calc-gas').value) || 0;
-
-        // Compute deltas from the entered prices vs last known
+        const currentBrent = liveBrentPrice;
+        const currentGas = PREV_GAS;
         const deltaBrent = currentBrent - PREV_BRENT;
-        const deltaGas = currentGas - PREV_GAS;
-
-        // Predict next month's change using current deltas
+        const deltaGas = 0;
         const predictedChange = COEF.intercept + COEF.brent * deltaBrent + COEF.lag_gas * deltaGas;
         const predictedPrice = currentGas + predictedChange;
         const low = predictedPrice - PRED_INTERVAL;
         const high = predictedPrice + PRED_INTERVAL;
-
-        document.getElementById('result-value').textContent =
-            '$' + predictedPrice.toFixed(3) + '/gal';
-
-        const source = userEdited ? 'based on user settings' : 'based on current Brent price';
-        const changeSign = predictedChange >= 0 ? '+' : '';
-        document.getElementById('result-detail').textContent =
-            'Predicted change: ' + changeSign + predictedChange.toFixed(4) +
-            ' $/gal (' + source + ')';
-
-        document.getElementById('result-interval').textContent =
-            '$' + low.toFixed(3) + ' to $' + high.toFixed(3) + '/gal';
+        renderGtCard(currentBrent, currentGas, predictedChange, predictedPrice, low, high);
     }
 
-    // Auto-predict on input change
-    document.getElementById('calc-brent').addEventListener('input', function() {
-        userEdited = true;
-        predict();
-    });
-    document.getElementById('calc-gas').addEventListener('input', function() {
-        userEdited = true;
-        predict();
-    });
+    function renderGtCard(currentBrent, currentGas, predictedChange, predicted, lower, upper) {
+        const deltaBrent = currentBrent - PREV_BRENT;
+        const current = CURRENT_AAA != null ? CURRENT_AAA : predicted;
+
+        document.getElementById('gt-brent').textContent = '$' + currentBrent.toFixed(2);
+        const isUp = deltaBrent >= 0;
+        const arrowClass = isUp ? 'arrow-up' : 'arrow-down';
+        const arrow = isUp ? '▲' : '▼';
+        const fmtSignedDollar = v => (v >= 0 ? '+$' : '-$') + Math.abs(v).toFixed(2);
+        document.getElementById('gt-brent-delta').innerHTML =
+            `<span class="${arrowClass}">${arrow}</span>${fmtSignedDollar(deltaBrent)} from last`;
+
+        document.getElementById('gt-prev-gas').textContent = '$' + currentGas.toFixed(3);
+        document.getElementById('gt-pred-change-val').textContent =
+            (predictedChange >= 0 ? '+' : '') + predictedChange.toFixed(3) + ' $/gal';
+
+        document.getElementById('gt-lower').textContent = '$' + lower.toFixed(3);
+        document.getElementById('gt-upper').textContent = '$' + upper.toFixed(3);
+
+        document.getElementById('gt-pred-val').textContent = '$' + predicted.toFixed(3);
+        document.getElementById('gt-current-val').textContent = '$' + current.toFixed(3);
+
+        const range = upper - lower || 1;
+        const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+        document.getElementById('gt-pred-tag').style.left = clamp(((predicted - lower) / range) * 100, 0, 100) + '%';
+        document.getElementById('gt-current-tag').style.left = clamp(((current - lower) / range) * 100, 0, 100) + '%';
+    }
 
     // Run initial prediction on page load
     predict();
