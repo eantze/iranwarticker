@@ -38,7 +38,7 @@ def _fetch_aaa_prices():
     """Scrape AAA gas prices page for national average regular prices."""
     logger.info("AAA collector: fetching gas prices...")
     resp = requests.get(AAA_URL, timeout=REQUEST_TIMEOUT, headers={
-        "User-Agent": "Mozilla/5.0 (compatible; IranWarTicker/1.0)"
+        "User-Agent": "Mozilla/5.0 (compatible; StraitImpact/1.0; +https://straitimpact.com)"
     })
     resp.raise_for_status()
     html = resp.text

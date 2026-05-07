@@ -15,7 +15,7 @@ RESOLVE_INTERVAL = 600  # Check every 10 minutes
 MAX_ATTEMPTS = 3
 REQUEST_TIMEOUT = 15
 USER_AGENT = (
-    "Mozilla/5.0 (compatible; IranTickerBot/1.0; +https://iranticker.com)"
+    "Mozilla/5.0 (compatible; StraitImpactBot/1.0; +https://straitimpact.com)"
 )
 
 # Domains that are Google redirect wrappers needing resolution
